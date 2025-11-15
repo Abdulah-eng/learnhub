@@ -1,11 +1,13 @@
 'use client';
 
-import { User, Course, Transaction, MOCK_COURSES } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { User, Course, Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { CourseCard } from './CourseCard';
 import { TransactionReceipt } from './TransactionReceipt';
 import { BookOpen, Award, Clock, Receipt } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { getAllCourses, getCourseById } from '@/lib/supabase/courses';
 
 interface UserDashboardProps {
   user: User;
@@ -15,9 +17,33 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ user, onCourseSelect, transactions, onDispute }: UserDashboardProps) {
-  const purchasedCourses = MOCK_COURSES.filter(course => 
-    user.purchasedCourses.includes(course.id)
-  );
+  const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPurchasedCourses() {
+      try {
+        setLoading(true);
+        if (user.purchasedCourses.length === 0) {
+          setPurchasedCourses([]);
+          return;
+        }
+        
+        const courses = await Promise.all(
+          user.purchasedCourses.map(courseId => getCourseById(courseId))
+        );
+        
+        setPurchasedCourses(courses.filter((course): course is Course => course !== null));
+      } catch (error) {
+        console.error('Error fetching purchased courses:', error);
+        setPurchasedCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchPurchasedCourses();
+  }, [user.purchasedCourses]);
 
   const totalSpent = transactions.reduce((sum, tx) => sum + tx.totalAmount, 0);
 
@@ -88,7 +114,11 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
         <TabsContent value="courses" className="space-y-6">
           <div>
             <h2 className="mb-6">My Courses</h2>
-            {purchasedCourses.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading your courses...</p>
+              </div>
+            ) : purchasedCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {purchasedCourses.map(course => (
                   <CourseCard

@@ -2,7 +2,7 @@
 
 import { useApp } from '@/lib/context/AppContext';
 import { Button } from './ui/button';
-import { LogIn, LogOut, User as UserIcon, Home, BookOpen } from 'lucide-react';
+import { LogIn, LogOut, User as UserIcon, Home, BookOpen, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,28 +26,52 @@ export function Header() {
           
           <div className="flex items-center gap-4">
             {currentUser ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
+              <>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2"
+                    onClick={() => router.push('/dashboard')}
+                  >
                     <UserIcon className="h-4 w-4" />
                     {currentUser.name}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => router.push('/')}>
-                    <Home className="h-4 w-4 mr-2" />
-                    Browse Courses
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    My Courses
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => router.push('/')}>
+                        <Home className="h-4 w-4 mr-2" />
+                        Browse Courses
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        {currentUser.role === 'admin' ? 'Admin Dashboard' : 'My Courses'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    try {
+                      await handleLogout();
+                      router.push('/');
+                    } catch (error) {
+                      // Error already handled in handleLogout
+                      router.push('/');
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
             ) : (
               <Button onClick={() => setShowAuthModal(true)} className="flex items-center gap-2">
                 <LogIn className="h-4 w-4" />

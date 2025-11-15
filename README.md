@@ -16,6 +16,7 @@ This is a full Next.js implementation of the Course Listing Website (Community) 
 
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type-safe development
+- **Supabase** - Backend as a Service (Database & Authentication)
 - **Tailwind CSS** - Utility-first CSS framework
 - **Radix UI** - Accessible component primitives
 - **Lucide React** - Icon library
@@ -69,13 +70,11 @@ npm run dev
 
 ## Authentication
 
-### Admin Login
-- Email: `admin@learnhub.com`
-- Password: `admin123`
+This project uses Supabase Authentication for real user authentication. See `SUPABASE_AUTH_SETUP.md` for detailed setup instructions.
 
-### User Logins
-- Email: `john@example.com`, `sarah@example.com`, `michael@example.com`, `emily@example.com`, `david@example.com`
-- Password: `user123` (for all users)
+### Test Credentials (after setup)
+- **Admin**: `admin@learnhub.com` / `admin123`
+- **Users**: `john@example.com`, `sarah@example.com`, `michael@example.com`, `emily@example.com`, `david@example.com` / `user123`
 
 ## Available Scripts
 

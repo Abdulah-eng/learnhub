@@ -1,7 +1,11 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { User, Transaction, Course, MOCK_USERS, generateInitialTransactions } from '../types';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User, Transaction, Course } from '../types';
+import { signIn, signOut, getCurrentUser, onAuthStateChange, UserProfile } from '../supabase/auth';
+import { getUserPurchasedCourses } from '../supabase/users';
+import { getAllTransactions, getUserTransactions, createTransaction, updateTransactionStatus } from '../supabase/transactions';
+import { addPurchasedCourse } from '../supabase/users';
 
 interface AppContextType {
   currentUser: User | null;
@@ -12,36 +16,149 @@ interface AppContextType {
   setSelectedCourse: (course: Course | null) => void;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
-  handleLogin: (email: string, password: string) => void;
-  handleLogout: () => void;
-  handlePurchase: (course: Course) => void;
-  handleDispute: (transactionId: string, reason: string) => void;
+  handleLogin: (email: string, password: string) => Promise<'admin' | 'user' | null>;
+  handleLogout: () => Promise<void>;
+  handlePurchase: (course: Course) => Promise<void>;
+  handleDispute: (transactionId: string, reason: string) => Promise<void>;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>(generateInitialTransactions());
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = (email: string, password: string) => {
-    const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-    if (user) {
-      setCurrentUser(user);
-      setShowAuthModal(false);
-    } else {
-      alert('Invalid credentials. Try:\nAdmin: admin@learnhub.com / admin123\nUser: john@example.com / user123');
+  // Load transactions when user changes
+  useEffect(() => {
+    async function loadTransactions() {
+      if (!currentUser) {
+        setTransactions([]);
+        return;
+      }
+
+      try {
+        if (currentUser.role === 'admin') {
+          const allTransactions = await getAllTransactions();
+          setTransactions(allTransactions);
+        } else {
+          const userTransactions = await getUserTransactions(currentUser.id);
+          // Add user name from context
+          const transactionsWithName = userTransactions.map(tx => ({
+            ...tx,
+            userName: currentUser.name,
+          }));
+          setTransactions(transactionsWithName);
+        }
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        setTransactions([]);
+      }
+    }
+
+    loadTransactions();
+  }, [currentUser]);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const result = await getCurrentUser();
+        if (result?.profile) {
+          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses,
+          });
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    checkUser();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = onAuthStateChange(async (result) => {
+      if (result?.profile) {
+        try {
+          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses,
+          });
+        } catch (error) {
+          console.error('Error loading purchased courses:', error);
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses: [],
+          });
+        }
+      } else {
+        setCurrentUser(null);
+        setSelectedCourse(null);
+        setTransactions([]);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogin = async (email: string, password: string): Promise<'admin' | 'user' | null> => {
+    try {
+      const result = await signIn(email, password);
+      if (result.profile) {
+        const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+        const user = {
+          id: result.profile.id,
+          name: result.profile.name,
+          email: result.profile.email,
+          role: result.profile.role,
+          purchasedCourses,
+        };
+        setCurrentUser(user);
+        setShowAuthModal(false);
+        return result.profile.role;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      alert(error.message || 'Invalid credentials. Please try again.');
+      return null;
     }
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setSelectedCourse(null);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      // Continue with logout even if there's an error
+    } finally {
+      // Always clear local state
+      setCurrentUser(null);
+      setSelectedCourse(null);
+    }
   };
 
-  const handlePurchase = (course: Course) => {
+  const handlePurchase = async (course: Course) => {
     if (!currentUser) {
       setShowAuthModal(true);
       return;
@@ -52,34 +169,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const serviceTax = course.price * 0.18; // 18% service tax
-    const newTransaction: Transaction = {
-      id: `TX${String(transactions.length + 1).padStart(6, '0')}`,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      courseId: course.id,
-      courseTitle: course.title,
-      coursePrice: course.price,
-      serviceTax: serviceTax,
-      totalAmount: course.price + serviceTax,
-      date: new Date().toISOString(),
-      status: 'completed'
-    };
+    try {
+      const serviceTax = course.price * 0.18; // 18% service tax
+      const totalAmount = course.price + serviceTax;
 
-    setTransactions([newTransaction, ...transactions]);
-    setCurrentUser({
-      ...currentUser,
-      purchasedCourses: [...currentUser.purchasedCourses, course.id]
-    });
-    setSelectedCourse(null);
+      // Create transaction in database
+      const newTransaction = await createTransaction(
+        currentUser.id,
+        course.id,
+        course.title,
+        course.price,
+        serviceTax,
+        totalAmount
+      );
+
+      if (!newTransaction) {
+        alert('Failed to create transaction. Please try again.');
+        return;
+      }
+
+      // Add purchased course to database
+      const success = await addPurchasedCourse(
+        currentUser.id,
+        course.id,
+        newTransaction.id
+      );
+
+      if (!success) {
+        console.error('Failed to add purchased course');
+      }
+
+      // Update local state
+      const transactionWithName: Transaction = {
+        ...newTransaction,
+        userName: currentUser.name,
+      };
+      setTransactions([transactionWithName, ...transactions]);
+      setCurrentUser({
+        ...currentUser,
+        purchasedCourses: [...currentUser.purchasedCourses, course.id]
+      });
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error('Error purchasing course:', error);
+      alert('Failed to purchase course. Please try again.');
+    }
   };
 
-  const handleDispute = (transactionId: string, reason: string) => {
-    setTransactions(transactions.map(tx => 
-      tx.id === transactionId 
-        ? { ...tx, status: 'disputed' as const, disputeReason: reason }
-        : tx
-    ));
+  const handleDispute = async (transactionId: string, reason: string) => {
+    try {
+      const success = await updateTransactionStatus(transactionId, 'disputed', reason);
+      if (success) {
+        setTransactions(transactions.map(tx => 
+          tx.id === transactionId 
+            ? { ...tx, status: 'disputed' as const, disputeReason: reason }
+            : tx
+        ));
+      } else {
+        alert('Failed to dispute transaction. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error disputing transaction:', error);
+      alert('Failed to dispute transaction. Please try again.');
+    }
   };
 
   return (
@@ -97,6 +249,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         handleLogout,
         handlePurchase,
         handleDispute,
+        loading,
       }}
     >
       {children}

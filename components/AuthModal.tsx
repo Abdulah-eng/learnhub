@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -11,10 +12,18 @@ export function AuthModal() {
   const { showAuthModal, setShowAuthModal, handleLogin } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin(email, password);
+    const role = await handleLogin(email, password);
+    
+    // Navigate based on user role
+    if (role === 'admin') {
+      router.push('/dashboard');
+    } else if (role === 'user') {
+      router.push('/dashboard');
+    }
   };
 
   const fillAdmin = () => {

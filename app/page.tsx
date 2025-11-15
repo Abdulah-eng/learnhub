@@ -3,19 +3,9 @@
 import { useApp } from '@/lib/context/AppContext';
 import { CourseList } from '@/components/CourseList';
 import { CourseDetail } from '@/components/CourseDetail';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Home() {
   const { currentUser, selectedCourse, setSelectedCourse, handlePurchase, setShowAuthModal } = useApp();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Redirect to dashboard if admin logs in
-    if (currentUser?.role === 'admin') {
-      router.push('/dashboard');
-    }
-  }, [currentUser, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">

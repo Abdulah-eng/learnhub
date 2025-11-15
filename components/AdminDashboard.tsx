@@ -9,11 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 interface AdminDashboardProps {
   transactions: Transaction[];
   users: User[];
+  loading?: boolean;
 }
 
 // This will be passed from the parent component
 
-export function AdminDashboard({ transactions, users }: AdminDashboardProps) {
+export function AdminDashboard({ transactions, users, loading = false }: AdminDashboardProps) {
   const totalRevenue = transactions.reduce((sum, tx) => sum + tx.totalAmount, 0);
   const totalTax = transactions.reduce((sum, tx) => sum + tx.serviceTax, 0);
   const disputedCount = transactions.filter(tx => tx.status === 'disputed').length;
@@ -102,8 +103,13 @@ export function AdminDashboard({ transactions, users }: AdminDashboardProps) {
 
         <TabsContent value="users" className="space-y-4">
           <h2 className="mb-4">Users Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {users.map(user => {
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading users...</p>
+            </div>
+          ) : users.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {users.map(user => {
               const userTransactions = transactions.filter(tx => tx.userId === user.id);
               const userSpent = userTransactions.reduce((sum, tx) => sum + tx.totalAmount, 0);
               
@@ -130,7 +136,14 @@ export function AdminDashboard({ transactions, users }: AdminDashboardProps) {
                 </Card>
               );
             })}
-          </div>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-gray-600">No users found</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="disputed" className="space-y-4">

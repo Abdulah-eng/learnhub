@@ -1,0 +1,80 @@
+import { supabase } from './client';
+import { User } from '../types';
+
+/**
+ * Get all users (admin only)
+ */
+export async function getAllUsers(): Promise<User[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('role', 'user')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+
+  // Get purchased courses for each user
+  const usersWithCourses = await Promise.all(
+    data.map(async (profile) => {
+      const { data: purchasedCourses } = await supabase
+        .from('user_purchased_courses')
+        .select('course_id')
+        .eq('user_id', profile.id);
+
+      return {
+        id: profile.id,
+        name: profile.name || '',
+        email: profile.email || '',
+        role: profile.role as 'admin' | 'user',
+        purchasedCourses: purchasedCourses?.map((pc) => pc.course_id) || [],
+      };
+    })
+  );
+
+  return usersWithCourses;
+}
+
+/**
+ * Get purchased courses for a user
+ */
+export async function getUserPurchasedCourses(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('user_purchased_courses')
+    .select('course_id')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching purchased courses:', error);
+    return [];
+  }
+
+  return data.map((pc) => pc.course_id);
+}
+
+/**
+ * Add a purchased course for a user
+ */
+export async function addPurchasedCourse(
+  userId: string,
+  courseId: string,
+  transactionId: string
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_purchased_courses')
+    .insert({
+      user_id: userId,
+      course_id: courseId,
+      transaction_id: transactionId,
+    });
+
+  if (error) {
+    console.error('Error adding purchased course:', error);
+    return false;
+  }
+
+  return true;
+}
+
