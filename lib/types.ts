@@ -34,13 +34,12 @@ export interface User {
   purchasedCourses: string[];
 }
 
-// Mock users (5 users + 1 admin)
+// Mock users (5 users + 1 admin) - Note: These are for reference only, actual users come from Supabase
 export const MOCK_USERS: User[] = [
   {
     id: 'admin',
     name: 'Admin',
     email: 'admin@learnhub.com',
-    password: 'admin123',
     role: 'admin',
     purchasedCourses: []
   },
@@ -48,7 +47,6 @@ export const MOCK_USERS: User[] = [
     id: 'user1',
     name: 'John Smith',
     email: 'john@example.com',
-    password: 'user123',
     role: 'user',
     purchasedCourses: ['1', '3']
   },
@@ -56,7 +54,6 @@ export const MOCK_USERS: User[] = [
     id: 'user2',
     name: 'Sarah Williams',
     email: 'sarah@example.com',
-    password: 'user123',
     role: 'user',
     purchasedCourses: ['2']
   },
@@ -64,7 +61,6 @@ export const MOCK_USERS: User[] = [
     id: 'user3',
     name: 'Michael Brown',
     email: 'michael@example.com',
-    password: 'user123',
     role: 'user',
     purchasedCourses: ['1', '2', '4']
   },
@@ -72,7 +68,6 @@ export const MOCK_USERS: User[] = [
     id: 'user4',
     name: 'Emily Davis',
     email: 'emily@example.com',
-    password: 'user123',
     role: 'user',
     purchasedCourses: ['5']
   },
@@ -80,7 +75,6 @@ export const MOCK_USERS: User[] = [
     id: 'user5',
     name: 'David Wilson',
     email: 'david@example.com',
-    password: 'user123',
     role: 'user',
     purchasedCourses: ['3', '6']
   }

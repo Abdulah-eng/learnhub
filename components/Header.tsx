@@ -10,10 +10,12 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function Header() {
   const { currentUser, setShowAuthModal, handleLogout } = useApp();
   const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   return (
     <header className="bg-white border-b border-gray-200/50 sticky top-0 z-40">
@@ -58,18 +60,22 @@ export function Header() {
                   variant="outline" 
                   onClick={async (e) => {
                     e.preventDefault();
+                    setIsLoggingOut(true);
                     try {
                       await handleLogout();
                       router.push('/');
                     } catch (error) {
                       // Error already handled in handleLogout
                       router.push('/');
+                    } finally {
+                      setIsLoggingOut(false);
                     }
                   }}
                   className="flex items-center gap-2"
+                  disabled={isLoggingOut}
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
                 </Button>
               </>
             ) : (

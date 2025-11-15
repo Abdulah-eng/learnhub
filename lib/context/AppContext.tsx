@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Transaction, Course } from '../types';
-import { signIn, signOut, getCurrentUser, onAuthStateChange, UserProfile } from '../supabase/auth';
+import { signIn, signUp, signInWithGoogle, signOut, getCurrentUser, onAuthStateChange, UserProfile } from '../supabase/auth';
 import { getUserPurchasedCourses } from '../supabase/users';
 import { getAllTransactions, getUserTransactions, createTransaction, updateTransactionStatus } from '../supabase/transactions';
 import { addPurchasedCourse } from '../supabase/users';
@@ -17,6 +17,8 @@ interface AppContextType {
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
   handleLogin: (email: string, password: string) => Promise<'admin' | 'user' | null>;
+  handleSignup: (email: string, password: string, name: string) => Promise<'user' | null>;
+  handleGoogleSignIn: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handlePurchase: (course: Course) => Promise<void>;
   handleDispute: (transactionId: string, reason: string) => Promise<void>;
@@ -145,6 +147,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const handleSignup = async (email: string, password: string, name: string): Promise<'user' | null> => {
+    try {
+      const result = await signUp(email, password, name);
+      if (result.profile) {
+        // New users always have role 'user' and no purchased courses
+        const user = {
+          id: result.profile.id,
+          name: result.profile.name,
+          email: result.profile.email,
+          role: 'user' as const,
+          purchasedCourses: [],
+        };
+        setCurrentUser(user);
+        setShowAuthModal(false);
+        return 'user';
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      alert(error.message || 'Failed to create account. Please try again.');
+      return null;
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      // OAuth will redirect, so we don't need to handle the response here
+      // The auth state change listener will handle the callback
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      alert(error.message || 'Failed to sign in with Google. Please try again.');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -246,6 +283,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showAuthModal,
         setShowAuthModal,
         handleLogin,
+        handleSignup,
+        handleGoogleSignIn,
         handleLogout,
         handlePurchase,
         handleDispute,
