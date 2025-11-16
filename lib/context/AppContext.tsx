@@ -247,6 +247,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         purchasedCourses: [...currentUser.purchasedCourses, course.id]
       });
       setSelectedCourse(null);
+      
+      // Show success message
+      alert(`Successfully purchased "${course.title}"! A transaction receipt has been generated. You can view it in your dashboard.`);
     } catch (error) {
       console.error('Error purchasing course:', error);
       alert('Failed to purchase course. Please try again.');

@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import { Receipt, AlertTriangle, User } from 'lucide-react';
+import { Receipt, AlertTriangle, User, Printer } from 'lucide-react';
 
 interface TransactionReceiptProps {
   transaction: Transaction;
@@ -21,14 +21,6 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [disputeReason, setDisputeReason] = useState('');
 
-  const handleDispute = () => {
-    if (disputeReason.trim()) {
-      onDispute(transaction.id, disputeReason);
-      setShowDisputeDialog(false);
-      setDisputeReason('');
-    }
-  };
-
   const date = new Date(transaction.date);
   const formattedDate = date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -37,6 +29,172 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  const handleDispute = () => {
+    if (disputeReason.trim()) {
+      onDispute(transaction.id, disputeReason);
+      setShowDisputeDialog(false);
+      setDisputeReason('');
+    }
+  };
+
+  const handlePrintReceipt = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Transaction Receipt</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              max-width: 600px;
+              margin: 40px auto;
+              padding: 20px;
+              background: white;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #000;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              color: #000;
+            }
+            .header p {
+              margin: 5px 0;
+              color: #666;
+            }
+            .section {
+              margin-bottom: 25px;
+            }
+            .section h2 {
+              font-size: 18px;
+              margin-bottom: 15px;
+              color: #000;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 5px;
+            }
+            .row {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
+              border-bottom: 1px solid #eee;
+            }
+            .row.total {
+              font-weight: bold;
+              font-size: 16px;
+              border-top: 2px solid #000;
+              border-bottom: 2px solid #000;
+              padding: 10px 0;
+              margin-top: 10px;
+            }
+            .label {
+              color: #666;
+            }
+            .value {
+              color: #000;
+              font-weight: 500;
+            }
+            .footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #ddd;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+            }
+            @media print {
+              body {
+                margin: 0;
+                padding: 20px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>LearnHub</h1>
+            <p>Transaction Receipt</p>
+          </div>
+          
+          <div class="section">
+            <h2>Transaction Details</h2>
+            <div class="row">
+              <span class="label">Transaction ID:</span>
+              <span class="value">${transaction.id}</span>
+            </div>
+            <div class="row">
+              <span class="label">Date:</span>
+              <span class="value">${formattedDate}</span>
+            </div>
+            <div class="row">
+              <span class="label">Status:</span>
+              <span class="value">${transaction.status === 'disputed' ? 'Disputed' : 'Completed'}</span>
+            </div>
+            ${showUserInfo ? `
+            <div class="row">
+              <span class="label">User:</span>
+              <span class="value">${transaction.userName}</span>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="section">
+            <h2>Course Information</h2>
+            <div class="row">
+              <span class="label">Course Title:</span>
+              <span class="value">${transaction.courseTitle}</span>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h2>Payment Details</h2>
+            <div class="row">
+              <span class="label">Course Price:</span>
+              <span class="value">$${transaction.coursePrice.toFixed(2)}</span>
+            </div>
+            <div class="row">
+              <span class="label">Service Tax (18%):</span>
+              <span class="value">$${transaction.serviceTax.toFixed(2)}</span>
+            </div>
+            <div class="row total">
+              <span class="label">Total Amount:</span>
+              <span class="value">$${transaction.totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+          
+          ${transaction.status === 'disputed' && transaction.disputeReason ? `
+          <div class="section">
+            <h2>Dispute Information</h2>
+            <div class="row">
+              <span class="label">Dispute Reason:</span>
+              <span class="value">${transaction.disputeReason}</span>
+            </div>
+          </div>
+          ` : ''}
+          
+          <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>This is an official receipt from LearnHub</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
 
   return (
     <>
@@ -98,22 +256,33 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
             </div>
           )}
 
-          {!isAdmin && transaction.status !== 'disputed' && (
+          <div className="flex gap-2">
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setShowDisputeDialog(true)}
-              className="w-full"
+              onClick={handlePrintReceipt}
+              className="flex-1"
             >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Dispute Transaction
+              <Printer className="h-4 w-4 mr-2" />
+              Print Receipt
             </Button>
-          )}
+            {!isAdmin && transaction.status !== 'disputed' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDisputeDialog(true)}
+                className="flex-1"
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Dispute Transaction
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
       <Dialog open={showDisputeDialog} onOpenChange={setShowDisputeDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Dispute Transaction</DialogTitle>
             <DialogDescription>

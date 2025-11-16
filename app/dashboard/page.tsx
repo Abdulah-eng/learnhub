@@ -10,7 +10,7 @@ import { getAllUsers } from '@/lib/supabase/users';
 import { User } from '@/lib/types';
 
 export default function DashboardPage() {
-  const { currentUser, selectedCourse, setSelectedCourse, transactions, handleDispute, loading } = useApp();
+  const { currentUser, selectedCourse, setSelectedCourse, transactions, handleDispute, handlePurchase, loading } = useApp();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <CourseDetail
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
-          onPurchase={() => {}}
+          onPurchase={() => handlePurchase(selectedCourse)}
           isPurchased={currentUser.purchasedCourses.includes(selectedCourse.id)}
         />
       )}

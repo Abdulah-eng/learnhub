@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Course } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Star, Users, Clock, CheckCircle2 } from 'lucide-react';
+import { Star, Users, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface CourseDetailProps {
   course: Course;
@@ -14,8 +15,18 @@ interface CourseDetailProps {
 }
 
 export function CourseDetail({ course, onClose, onPurchase, isPurchased }: CourseDetailProps) {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const serviceTax = course.price * 0.18;
   const totalAmount = course.price + serviceTax;
+
+  const handlePurchaseClick = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmPurchase = () => {
+    setShowConfirmDialog(false);
+    onPurchase();
+  };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -129,7 +140,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
                 Close
               </Button>
               {!isPurchased && (
-                <Button onClick={onPurchase} size="lg">
+                <Button onClick={handlePurchaseClick} size="lg">
                   Purchase Now
                 </Button>
               )}
@@ -137,6 +148,62 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
           </div>
         </div>
       </DialogContent>
+
+      {/* Purchase Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Purchase</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to purchase this course? This action will complete the transaction.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-1">{course.title}</h4>
+                <p className="text-sm text-gray-600">Instructor: {course.instructor}</p>
+              </div>
+              
+              <div className="border-t border-gray-200/50 pt-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Course Price:</span>
+                  <span className="text-gray-900">${course.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service Tax (18%):</span>
+                  <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
+                </div>
+                <div className="border-t border-gray-200/50 pt-2 mt-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-900">Total Amount:</span>
+                    <span className="font-medium text-gray-900">${totalAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200/50 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-blue-900">
+                  After confirmation, the course will be added to your account and a transaction receipt will be generated.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmPurchase} size="lg">
+              Confirm Purchase
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

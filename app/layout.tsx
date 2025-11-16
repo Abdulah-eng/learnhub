@@ -8,7 +8,7 @@ import { AuthModal } from "@/components/AuthModal";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Course Listing Website (Community)",
+  title: "Course Listing Website - Community",
   description: "Discover thousands of courses from expert instructors",
 };
 
