@@ -30,17 +30,17 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white p-4 sm:p-8">
         <DialogHeader>
           <DialogTitle className="sr-only">{course.title}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="relative">
+          <div className="relative rounded-lg overflow-hidden">
             <img
               src={course.image}
               alt={course.title}
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full h-48 sm:h-64 object-cover"
             />
             {isPurchased && (
               <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
@@ -51,14 +51,14 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge variant="secondary">{course.level}</Badge>
               <Badge variant="outline">{course.category}</Badge>
             </div>
             
             <h2 className="mb-3">{course.title}</h2>
             
-            <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span>{course.rating} rating</span>
@@ -127,20 +127,20 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
             </div>
           )}
 
-          <div className="border-t border-gray-200/50 pt-6 flex items-center justify-between">
+          <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {!isPurchased && (
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Price</p>
-                <p className="text-gray-900">${totalAmount.toFixed(2)}</p>
+                <p className="text-gray-900 text-xl">${totalAmount.toFixed(2)}</p>
               </div>
             )}
             
-            <div className="flex gap-3 ml-auto">
-              <Button variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row gap-3 ml-auto w-full sm:w-auto">
+              <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
               {!isPurchased && (
-                <Button onClick={handlePurchaseClick} size="lg">
+                <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto">
                   Purchase Now
                 </Button>
               )}
@@ -151,7 +151,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
 
       {/* Purchase Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-white p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Confirm Purchase</DialogTitle>
             <DialogDescription>

@@ -106,7 +106,7 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
       </div>
 
       <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex w-full flex-wrap justify-start gap-2 overflow-x-auto">
           <TabsTrigger value="courses">My Courses</TabsTrigger>
           <TabsTrigger value="transactions">Transaction History</TabsTrigger>
         </TabsList>

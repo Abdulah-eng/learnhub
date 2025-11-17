@@ -47,7 +47,7 @@ export function Testimonials() {
                 <Globe className="h-5 w-5 text-green-600" />
                 <h3 className="text-xl font-semibold">International</h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {countries.map((country, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-1">

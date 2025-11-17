@@ -45,7 +45,7 @@ export function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
           By {course.instructor}
         </p>
         
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span>{course.rating}</span>
@@ -61,9 +61,9 @@ export function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
         </div>
       </CardContent>
       
-      <CardFooter className="p-4 pt-0 flex items-center justify-between">
-        <span className="text-gray-900">${course.price}</span>
-        <Button onClick={onSelect} variant={isPurchased ? "outline" : "default"}>
+      <CardFooter className="p-4 pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <span className="text-gray-900 text-lg w-full sm:w-auto">${course.price}</span>
+        <Button onClick={onSelect} variant={isPurchased ? "outline" : "default"} className="w-full sm:w-auto">
           {isPurchased ? 'View Course' : 'Learn More'}
         </Button>
       </CardFooter>

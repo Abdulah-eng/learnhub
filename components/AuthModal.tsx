@@ -95,16 +95,26 @@ export function AuthModal() {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg border border-gray-200/60">
+            <TabsTrigger
+              value="login"
+              className="py-2 text-sm font-semibold text-gray-500 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+            >
+              Login
+            </TabsTrigger>
+            <TabsTrigger
+              value="signup"
+              className="py-2 text-sm font-semibold text-gray-500 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+            >
+              Sign Up
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login" className="space-y-4 mt-4">
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white text-gray-900 border-gray-200/50 hover:bg-gray-50 flex items-center justify-center gap-2"
+              className="w-full bg-black text-white border-black hover:bg-gray-900 flex items-center justify-center gap-2"
               onClick={handleGoogleClick}
               disabled={isGoogleLoading || isLoading}
             >
@@ -207,7 +217,7 @@ export function AuthModal() {
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white text-gray-900 border-gray-200/50 hover:bg-gray-50 flex items-center justify-center gap-2"
+              className="w-full bg-black text-white border-black hover:bg-gray-900 flex items-center justify-center gap-2"
               onClick={handleGoogleClick}
               disabled={isGoogleLoading || isLoading}
             >

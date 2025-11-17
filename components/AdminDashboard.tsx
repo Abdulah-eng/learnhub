@@ -73,7 +73,7 @@ export function AdminDashboard({ transactions, users, loading = false }: AdminDa
       </div>
 
       <Tabs defaultValue="all" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex w-full flex-wrap justify-start gap-2 overflow-x-auto">
           <TabsTrigger value="all">All Transactions</TabsTrigger>
           <TabsTrigger value="users">Users Overview</TabsTrigger>
           <TabsTrigger value="disputed">

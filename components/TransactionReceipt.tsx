@@ -198,9 +198,9 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
 
   return (
     <>
-      <Card className={transaction.status === 'disputed' ? 'border-red-300 bg-red-50' : ''}>
+      <Card className={`${transaction.status === 'disputed' ? 'border-red-300 bg-red-50' : ''}`}>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Receipt className="h-5 w-5 text-blue-600" />
@@ -216,7 +216,7 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
                 )}
               </div>
             </div>
-            <Badge variant={transaction.status === 'disputed' ? 'destructive' : 'default'}>
+            <Badge variant={transaction.status === 'disputed' ? 'destructive' : 'default'} className="w-fit">
               {transaction.status === 'disputed' ? 'Disputed' : 'Completed'}
             </Badge>
           </div>
@@ -228,16 +228,16 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
           </div>
 
           <div className="bg-white rounded-lg p-4 space-y-2 border border-gray-200/50">
-            <div className="flex justify-between text-sm">
+            <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
               <span className="text-gray-600">Course Price:</span>
               <span className="text-gray-900">${transaction.coursePrice.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
               <span className="text-gray-600">Service Tax (8%):</span>
               <span className="text-gray-900">${transaction.serviceTax.toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200/50 pt-2 mt-2">
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-900">Total Amount:</span>
                 <span className="text-gray-900">${transaction.totalAmount.toFixed(2)}</span>
               </div>

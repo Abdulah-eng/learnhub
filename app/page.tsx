@@ -13,10 +13,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main>
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12 sm:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-center mb-4">Learn Without Limits</h1>
-            <p className="text-center text-xl opacity-90 max-w-2xl mx-auto">
+            <h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-semibold mb-4">Learn Without Limits</h1>
+            <p className="text-center text-base sm:text-lg opacity-90 max-w-2xl mx-auto">
               Discover thousands of courses from expert instructors. Start learning today.
             </p>
           </div>
