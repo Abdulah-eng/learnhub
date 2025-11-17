@@ -30,6 +30,8 @@ export async function getAllUsers(): Promise<User[]> {
         email: profile.email || '',
         role: profile.role as 'admin' | 'user',
         purchasedCourses: purchasedCourses?.map((pc) => pc.course_id) || [],
+        isApproved: profile.is_approved ?? true, // Default to true for backward compatibility
+        isBlocked: profile.is_blocked ?? false, // Default to false for backward compatibility
       };
     })
   );

@@ -77,6 +77,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: result.profile.email,
             role: result.profile.role,
             purchasedCourses,
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
           });
         }
       } catch (error) {
@@ -99,6 +101,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: result.profile.email,
             role: result.profile.role,
             purchasedCourses,
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
           });
         } catch (error) {
           console.error('Error loading purchased courses:', error);
@@ -108,6 +112,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: result.profile.email,
             role: result.profile.role,
             purchasedCourses: [],
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
           });
         }
       } else {
@@ -134,6 +140,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           email: result.profile.email,
           role: result.profile.role,
           purchasedCourses,
+          isApproved: result.profile.is_approved ?? true,
+          isBlocked: result.profile.is_blocked ?? false,
         };
         setCurrentUser(user);
         setShowAuthModal(false);
@@ -158,6 +166,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           email: result.profile.email,
           role: 'user' as const,
           purchasedCourses: [],
+          isApproved: result.profile.is_approved ?? false,
+          isBlocked: result.profile.is_blocked ?? false,
         };
         setCurrentUser(user);
         setShowAuthModal(false);
@@ -248,8 +258,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       setSelectedCourse(null);
       
+      // Send purchase confirmation email with zoom link
+      try {
+        // Default zoom link - can be configured per course or globally
+        const zoomLink = process.env.NEXT_PUBLIC_ZOOM_LINK || `https://zoom.us/j/${course.id.replace(/-/g, '')}`;
+        
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'course_purchase',
+            to: currentUser.email,
+            data: {
+              userName: currentUser.name,
+              courseTitle: course.title,
+              instructor: course.instructor,
+              totalAmount: totalAmount,
+              transactionId: newTransaction.id,
+              zoomLink: zoomLink,
+            },
+          }),
+        });
+      } catch (error) {
+        console.error('Error sending purchase confirmation email:', error);
+        // Don't fail purchase if email fails
+      }
+      
       // Show success message
-      alert(`Successfully purchased "${course.title}"! A transaction receipt has been generated. You can view it in your dashboard.`);
+      alert(`Successfully purchased "${course.title}"! A confirmation email with your Zoom link has been sent. You can view your transaction receipt in your dashboard.`);
     } catch (error) {
       console.error('Error purchasing course:', error);
       alert('Failed to purchase course. Please try again.');

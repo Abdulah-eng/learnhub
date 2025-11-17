@@ -23,21 +23,22 @@ export default function DashboardPage() {
   }, [currentUser, loading, router]);
 
   // Load users for admin dashboard
-  useEffect(() => {
-    async function loadUsers() {
-      if (currentUser?.role === 'admin') {
-        try {
-          setUsersLoading(true);
-          const allUsers = await getAllUsers();
-          setUsers(allUsers);
-        } catch (error) {
-          console.error('Error loading users:', error);
-          setUsers([]);
-        } finally {
-          setUsersLoading(false);
-        }
+  const loadUsers = async () => {
+    if (currentUser?.role === 'admin') {
+      try {
+        setUsersLoading(true);
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        setUsers([]);
+      } finally {
+        setUsersLoading(false);
       }
     }
+  };
+
+  useEffect(() => {
     loadUsers();
   }, [currentUser]);
 
@@ -62,6 +63,7 @@ export default function DashboardPage() {
             transactions={transactions}
             users={users}
             loading={usersLoading}
+            onUsersUpdate={loadUsers}
           />
         ) : (
           <UserDashboard 

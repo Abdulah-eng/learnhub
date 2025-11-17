@@ -5,6 +5,8 @@ export interface UserProfile {
   email: string;
   name: string;
   role: 'admin' | 'user';
+  is_approved?: boolean;
+  is_blocked?: boolean;
 }
 
 /**
@@ -35,9 +37,21 @@ export async function signIn(email: string, password: string) {
     throw profileError;
   }
 
+  const userProfile = profile as UserProfile;
+
+  // Check if user is blocked
+  if (userProfile.is_blocked) {
+    throw new Error('Your account has been blocked. Please contact support.');
+  }
+
+  // Check if user is approved (only for non-admin users)
+  if (userProfile.role === 'user' && !userProfile.is_approved) {
+    throw new Error('Your account is pending approval. Please wait for admin approval.');
+  }
+
   return {
     user: data.user,
-    profile: profile as UserProfile,
+    profile: userProfile,
   };
 }
 
@@ -122,6 +136,32 @@ export async function signUp(email: string, password: string, name: string) {
     }
   }
 
+  // Send admin notification email
+  try {
+    const dashboardUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/dashboard`
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000/dashboard';
+    
+    await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'admin_signup_notification',
+        data: {
+          name: name,
+          email: email,
+          signupDate: new Date().toISOString(),
+          dashboardUrl: dashboardUrl,
+        },
+      }),
+    });
+  } catch (error) {
+    console.error('Error sending admin notification email:', error);
+    // Don't fail signup if email fails
+  }
+
   return {
     user: data.user,
     profile: profile as UserProfile,
@@ -188,9 +228,21 @@ export async function getCurrentUser(): Promise<{ user: any; profile: UserProfil
       return { user, profile: null };
     }
 
+    const userProfile = profile as UserProfile;
+
+    // Check if user is blocked
+    if (userProfile?.is_blocked) {
+      return null; // Return null if blocked
+    }
+
+    // Check if user is approved (only for non-admin users)
+    if (userProfile?.role === 'user' && !userProfile?.is_approved) {
+      return null; // Return null if not approved
+    }
+
     return {
       user,
-      profile: profile as UserProfile,
+      profile: userProfile,
     };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -231,9 +283,23 @@ export function onAuthStateChange(callback: (result: { user: any; profile: UserP
         }
       }
 
+      const userProfile = profile as UserProfile | null;
+
+      // Check if user is blocked or not approved
+      if (userProfile) {
+        if (userProfile.is_blocked) {
+          callback(null); // Blocked users are logged out
+          return;
+        }
+        if (userProfile.role === 'user' && !userProfile.is_approved) {
+          callback(null); // Unapproved users are logged out
+          return;
+        }
+      }
+
       callback({
         user: session.user,
-        profile: profile as UserProfile | null,
+        profile: userProfile,
       });
     } else {
       callback(null);

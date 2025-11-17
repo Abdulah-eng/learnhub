@@ -32,6 +32,8 @@ export interface User {
   email: string;
   role: 'admin' | 'user';
   purchasedCourses: string[];
+  isApproved?: boolean;
+  isBlocked?: boolean;
 }
 
 // Mock users (5 users + 1 admin) - Note: These are for reference only, actual users come from Supabase
