@@ -16,7 +16,7 @@ interface CourseDetailProps {
 
 export function CourseDetail({ course, onClose, onPurchase, isPurchased }: CourseDetailProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const serviceTax = course.price * 0.18;
+  const serviceTax = course.price * 0.08;
   const totalAmount = course.price + serviceTax;
 
   const handlePurchaseClick = () => {
@@ -115,7 +115,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
                 <span className="text-gray-900">${course.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Service Tax (18%):</span>
+                <span className="text-gray-600">Service Tax (8%):</span>
                 <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-200/50 pt-2 mt-2">
@@ -172,7 +172,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
                   <span className="text-gray-900">${course.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Service Tax (18%):</span>
+                  <span className="text-gray-600">Service Tax (8%):</span>
                   <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-gray-200/50 pt-2 mt-2">

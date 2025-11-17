@@ -207,7 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const serviceTax = course.price * 0.18; // 18% service tax
+      const serviceTax = course.price * 0.08; // 8% service tax
       const totalAmount = course.price + serviceTax;
 
       // Create transaction in database

@@ -3,6 +3,9 @@
 import { useApp } from '@/lib/context/AppContext';
 import { CourseList } from '@/components/CourseList';
 import { CourseDetail } from '@/components/CourseDetail';
+import { CoursePolicies } from '@/components/CoursePolicies';
+import { CorporateTraining } from '@/components/CorporateTraining';
+import { Testimonials } from '@/components/Testimonials';
 
 export default function Home() {
   const { currentUser, selectedCourse, setSelectedCourse, handlePurchase, setShowAuthModal } = useApp();
@@ -23,6 +26,12 @@ export default function Home() {
           onCourseSelect={setSelectedCourse}
           purchasedCourses={currentUser?.purchasedCourses || []}
         />
+
+        <CoursePolicies />
+
+        <CorporateTraining />
+
+        <Testimonials />
       </main>
 
       {selectedCourse && (

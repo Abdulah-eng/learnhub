@@ -160,7 +160,7 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
               <span class="value">$${transaction.coursePrice.toFixed(2)}</span>
             </div>
             <div class="row">
-              <span class="label">Service Tax (18%):</span>
+              <span class="label">Service Tax (8%):</span>
               <span class="value">$${transaction.serviceTax.toFixed(2)}</span>
             </div>
             <div class="row total">
@@ -233,7 +233,7 @@ export function TransactionReceipt({ transaction, onDispute, showUserInfo, isAdm
               <span className="text-gray-900">${transaction.coursePrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Service Tax (18%):</span>
+              <span className="text-gray-600">Service Tax (8%):</span>
               <span className="text-gray-900">${transaction.serviceTax.toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200/50 pt-2 mt-2">
