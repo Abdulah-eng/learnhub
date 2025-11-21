@@ -139,6 +139,76 @@ export async function POST(request: NextRequest) {
         };
         break;
 
+      case 'corporate_training_purchase':
+        emailContent = {
+          from: `"LearnHub" <${process.env.SMTP_USER}>`,
+          to: to,
+          subject: `Corporate Training Purchase Confirmation: ${data.packageDuration}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <style>
+                  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                  .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                  .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                  .info-box { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #667eea; }
+                  .zoom-box { background: #e3f2fd; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #2196f3; }
+                  .zoom-link { display: inline-block; padding: 12px 30px; background: #2196f3; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; font-weight: bold; }
+                  .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <h1>Corporate Training Purchase Confirmation</h1>
+                  </div>
+                  <div class="content">
+                    <p>Hello ${data.userName},</p>
+                    <p>Thank you for your corporate training purchase! Your training program has been successfully scheduled.</p>
+                    <div class="info-box">
+                      <h3>Training Package Details</h3>
+                      <p><strong>Duration:</strong> ${data.packageDuration}</p>
+                      <p><strong>Package Price:</strong> $${data.packagePrice.toLocaleString()}</p>
+                      <p><strong>Total Amount:</strong> $${data.totalAmount.toFixed(2)}</p>
+                      <p><strong>Transaction ID:</strong> ${data.transactionId}</p>
+                    </div>
+                    <div class="zoom-box">
+                      <h3 style="margin-top: 0;">Join Your Training Sessions</h3>
+                      <p>Use the Zoom link below to join your one-on-one training sessions:</p>
+                      <p style="text-align: center;">
+                        <a href="${data.zoomLink}" class="zoom-link" target="_blank">Join Zoom Training</a>
+                      </p>
+                      <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                        <strong>Zoom Link:</strong><br>
+                        <a href="${data.zoomLink}" style="color: #2196f3; word-break: break-all;">${data.zoomLink}</a>
+                      </p>
+                      <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                        Please save this link for future reference. You'll use it to access all your training sessions.
+                      </p>
+                    </div>
+                    <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
+                      <h3 style="margin-top: 0;">Training Delivery</h3>
+                      <p style="margin: 5px 0;"><strong>✓ One-on-One Training:</strong> All corporate trainings are conducted one-on-one by our specialized instructors</p>
+                      <p style="margin: 5px 0;"><strong>✓ On-Site Training:</strong> We provide corporate trainings on-site in any city in the world</p>
+                      <p style="margin: 5px 0;"><strong>✓ Customized Programs:</strong> Training programs tailored to your company's specific needs</p>
+                    </div>
+                    <p style="margin-top: 30px;">
+                      Our team will contact you shortly to schedule your training sessions and discuss your specific requirements.
+                    </p>
+                  </div>
+                  <div class="footer">
+                    <p>This is an automated confirmation email from LearnHub</p>
+                    <p>If you have any questions, please contact our support team.</p>
+                  </div>
+                </div>
+              </body>
+            </html>
+          `,
+        };
+        break;
+
       default:
         return NextResponse.json(
           { error: 'Invalid email type' },

@@ -46,15 +46,10 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
               className="w-full h-48 sm:h-64 object-cover"
             />
             {isPurchased && (
-              <>
-                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>You own this course</span>
-                </div>
-                <div className="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded-full text-sm">
-                  You can purchase this course again as a gift
-                </div>
-              </>
+              <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                <span>You own this course</span>
+              </div>
             )}
           </div>
 
@@ -115,40 +110,36 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
             </ul>
           </div>
 
-          {!isPurchased && (
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <h3 className="mb-3">Price Breakdown</h3>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Course Price:</span>
-                <span className="text-gray-900">${course.price.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Service Tax (8%):</span>
-                <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-gray-200/50 pt-2 mt-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Total Amount:</span>
-                  <span className="text-gray-900">${totalAmount.toFixed(2)}</span>
-                </div>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+            <h3 className="mb-3">Price Breakdown</h3>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Course Price:</span>
+              <span className="text-gray-900">${course.price.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Service Tax (8%):</span>
+              <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
+            </div>
+            <div className="border-t border-gray-200/50 pt-2 mt-2">
+              <div className="flex justify-between">
+                <span className="text-gray-900">Total Amount:</span>
+                <span className="text-gray-900">${totalAmount.toFixed(2)}</span>
               </div>
             </div>
-          )}
+          </div>
 
           <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {!isPurchased && (
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Price</p>
-                <p className="text-gray-900 text-xl">${totalAmount.toFixed(2)}</p>
-              </div>
-            )}
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Total Price</p>
+              <p className="text-gray-900 text-xl">${totalAmount.toFixed(2)}</p>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-3 ml-auto w-full sm:w-auto">
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
               <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto">
-                {isPurchased ? 'Purchase as Gift' : 'Purchase Now'}
+                Purchase Now
               </Button>
             </div>
           </div>
