@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Course } from '@/lib/types';
 import { CourseCard } from './CourseCard';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
@@ -18,7 +18,13 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize purchased courses set for faster lookups
+  const purchasedCoursesSet = useMemo(() => new Set(purchasedCourses), [purchasedCourses]);
+
+  // Fetch initial data
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchData() {
       try {
         setLoading(true);
@@ -26,43 +32,78 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
           getAllCourses(),
           getAllCategories()
         ]);
-        setCourses(coursesData);
-        setCategories(['All', ...categoriesData]);
+        
+        if (isMounted) {
+          setCourses(coursesData);
+          setCategories(['All', ...categoriesData]);
+        }
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load courses. Please try again later.');
+        if (isMounted) {
+          setError('Failed to load courses. Please try again later.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
+    
     fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Fetch courses by category (optimized to avoid unnecessary fetches)
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchCoursesByCategory() {
       if (selectedCategory === 'All') {
         try {
           const coursesData = await getAllCourses();
-          setCourses(coursesData);
+          if (isMounted) {
+            setCourses(coursesData);
+          }
         } catch (err) {
           console.error('Error fetching courses:', err);
-          setError('Failed to load courses. Please try again later.');
+          if (isMounted) {
+            setError('Failed to load courses. Please try again later.');
+          }
         }
       } else {
         try {
           setLoading(true);
           const coursesData = await getCoursesByCategory(selectedCategory);
-          setCourses(coursesData);
+          if (isMounted) {
+            setCourses(coursesData);
+          }
         } catch (err) {
           console.error('Error fetching courses by category:', err);
-          setError('Failed to load courses. Please try again later.');
+          if (isMounted) {
+            setError('Failed to load courses. Please try again later.');
+          }
         } finally {
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       }
     }
+    
     fetchCoursesByCategory();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [selectedCategory]);
+
+  // Memoize the course selection handler
+  const handleCourseSelect = useCallback((course: Course) => {
+    onCourseSelect(course);
+  }, [onCourseSelect]);
 
   if (loading && courses.length === 0) {
     return (
@@ -116,8 +157,8 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
             <CourseCard
               key={course.id}
               course={course}
-              onSelect={() => onCourseSelect(course)}
-              isPurchased={purchasedCourses.includes(course.id)}
+              onSelect={() => handleCourseSelect(course)}
+              isPurchased={purchasedCoursesSet.has(course.id)}
             />
           ))}
         </div>

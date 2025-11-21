@@ -79,8 +79,9 @@ export default function DashboardPage() {
         <CourseDetail
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
-          onPurchase={() => handlePurchase(selectedCourse)}
+          onPurchase={(paymentDetails) => handlePurchase(selectedCourse, paymentDetails)}
           isPurchased={currentUser.purchasedCourses.includes(selectedCourse.id)}
+          userEmail={currentUser.email}
         />
       )}
     </div>

@@ -6,26 +6,29 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Star, Users, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PaymentForm, PaymentDetails } from './PaymentForm';
 
 interface CourseDetailProps {
   course: Course;
   onClose: () => void;
-  onPurchase: () => void;
+  onPurchase: (paymentDetails: PaymentDetails) => Promise<void>;
   isPurchased: boolean;
+  userEmail?: string;
+  isLoading?: boolean;
 }
 
-export function CourseDetail({ course, onClose, onPurchase, isPurchased }: CourseDetailProps) {
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEmail = '', isLoading = false }: CourseDetailProps) {
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const serviceTax = course.price * 0.08;
   const totalAmount = course.price + serviceTax;
 
   const handlePurchaseClick = () => {
-    setShowConfirmDialog(true);
+    setShowPaymentDialog(true);
   };
 
-  const handleConfirmPurchase = () => {
-    setShowConfirmDialog(false);
-    onPurchase();
+  const handlePaymentSubmit = async (paymentDetails: PaymentDetails) => {
+    await onPurchase(paymentDetails);
+    setShowPaymentDialog(false);
   };
 
   return (
@@ -43,10 +46,15 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
               className="w-full h-48 sm:h-64 object-cover"
             />
             {isPurchased && (
-              <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5" />
-                <span>You own this course</span>
-              </div>
+              <>
+                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>You own this course</span>
+                </div>
+                <div className="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded-full text-sm">
+                  You can purchase this course again as a gift
+                </div>
+              </>
             )}
           </div>
 
@@ -139,69 +147,32 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased }: Cours
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
-              {!isPurchased && (
-                <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto">
-                  Purchase Now
-                </Button>
-              )}
+              <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto">
+                {isPurchased ? 'Purchase as Gift' : 'Purchase Now'}
+              </Button>
             </div>
           </div>
         </div>
       </DialogContent>
 
-      {/* Purchase Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="bg-white p-4 sm:p-6">
+      {/* Payment Form Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="bg-white p-4 sm:p-6 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Confirm Purchase</DialogTitle>
+            <DialogTitle>Payment Details</DialogTitle>
             <DialogDescription>
-              Are you sure you want to purchase this course? This action will complete the transaction.
+              Enter your payment information to complete the purchase
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">{course.title}</h4>
-                <p className="text-sm text-gray-600">Instructor: {course.instructor}</p>
-              </div>
-              
-              <div className="border-t border-gray-200/50 pt-3 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Course Price:</span>
-                  <span className="text-gray-900">${course.price.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Service Tax (8%):</span>
-                  <span className="text-gray-900">${serviceTax.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-200/50 pt-2 mt-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-900">Total Amount:</span>
-                    <span className="font-medium text-gray-900">${totalAmount.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200/50 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-blue-900">
-                  After confirmation, the course will be added to your account and a transaction receipt will be generated.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmPurchase} size="lg">
-              Confirm Purchase
-            </Button>
-          </DialogFooter>
+          <PaymentForm
+            courseTitle={course.title}
+            totalAmount={totalAmount}
+            defaultEmail={userEmail}
+            onSubmit={handlePaymentSubmit}
+            onCancel={() => setShowPaymentDialog(false)}
+            isLoading={isLoading}
+          />
         </DialogContent>
       </Dialog>
     </Dialog>

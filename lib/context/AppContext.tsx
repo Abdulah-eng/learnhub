@@ -20,7 +20,7 @@ interface AppContextType {
   handleSignup: (email: string, password: string, name: string) => Promise<'user' | null>;
   handleGoogleSignIn: () => Promise<void>;
   handleLogout: () => Promise<void>;
-  handlePurchase: (course: Course) => Promise<void>;
+  handlePurchase: (course: Course, paymentDetails: import('@/components/PaymentForm').PaymentDetails) => Promise<void>;
   handleDispute: (transactionId: string, reason: string) => Promise<void>;
   loading: boolean;
 }
@@ -205,7 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handlePurchase = async (course: Course) => {
+  const handlePurchase = async (course: Course, paymentDetails: import('@/components/PaymentForm').PaymentDetails) => {
     if (!currentUser) {
       setShowAuthModal(true);
       return;
@@ -235,7 +235,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Add purchased course to database
+      // Add purchased course to database (allow multiple purchases)
       const success = await addPurchasedCourse(
         currentUser.id,
         course.id,
@@ -246,19 +246,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Failed to add purchased course');
       }
 
-      // Update local state
+      // Update local state - only add to purchasedCourses if not already there
       const transactionWithName: Transaction = {
         ...newTransaction,
         userName: currentUser.name,
       };
       setTransactions([transactionWithName, ...transactions]);
-      setCurrentUser({
-        ...currentUser,
-        purchasedCourses: [...currentUser.purchasedCourses, course.id]
-      });
+      
+      // Only update purchasedCourses if this is the first purchase of this course
+      if (!currentUser.purchasedCourses.includes(course.id)) {
+        setCurrentUser({
+          ...currentUser,
+          purchasedCourses: [...currentUser.purchasedCourses, course.id]
+        });
+      }
+      
       setSelectedCourse(null);
       
-      // Send purchase confirmation email with zoom link
+      // Send purchase confirmation email with zoom link to the recipient email
       try {
         // Default zoom link - can be configured per course or globally
         const zoomLink = process.env.NEXT_PUBLIC_ZOOM_LINK || `https://zoom.us/j/${course.id.replace(/-/g, '')}`;
@@ -270,9 +275,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           },
           body: JSON.stringify({
             type: 'course_purchase',
-            to: currentUser.email,
+            to: paymentDetails.recipientEmail, // Use recipient email from payment form
             data: {
-              userName: currentUser.name,
+              userName: paymentDetails.cardName, // Use cardholder name
               courseTitle: course.title,
               instructor: course.instructor,
               totalAmount: totalAmount,
@@ -287,7 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       
       // Show success message
-      alert(`Successfully purchased "${course.title}"! A confirmation email with your Zoom link has been sent. You can view your transaction receipt in your dashboard.`);
+      alert(`Successfully purchased "${course.title}"! A confirmation email with your Zoom link has been sent to ${paymentDetails.recipientEmail}. You can view your transaction receipt in your dashboard.`);
     } catch (error) {
       console.error('Error purchasing course:', error);
       alert('Failed to purchase course. Please try again.');

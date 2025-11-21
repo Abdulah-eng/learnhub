@@ -38,8 +38,9 @@ export default function Home() {
         <CourseDetail
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
-          onPurchase={() => handlePurchase(selectedCourse)}
+          onPurchase={(paymentDetails) => handlePurchase(selectedCourse, paymentDetails)}
           isPurchased={currentUser?.purchasedCourses.includes(selectedCourse.id) || false}
+          userEmail={currentUser?.email || ''}
         />
       )}
     </div>

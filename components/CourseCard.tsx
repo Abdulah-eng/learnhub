@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Course } from '@/lib/types';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
@@ -12,7 +13,7 @@ interface CourseCardProps {
   isPurchased: boolean;
 }
 
-export function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
+export const CourseCard = memo(function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
       <div className="relative" onClick={onSelect}>
@@ -62,12 +63,12 @@ export function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
       </CardContent>
       
       <CardFooter className="p-4 pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <span className="text-gray-900 text-lg w-full sm:w-auto">${course.price}</span>
+        <span className="text-gray-900 text-lg w-full sm:w-auto">${course.price.toFixed(2)}</span>
         <Button onClick={onSelect} variant={isPurchased ? "outline" : "default"} className="w-full sm:w-auto">
           {isPurchased ? 'View Course' : 'Learn More'}
         </Button>
       </CardFooter>
     </Card>
   );
-}
+});
 
