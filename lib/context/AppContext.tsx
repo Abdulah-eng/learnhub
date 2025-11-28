@@ -150,7 +150,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return null;
     } catch (error: any) {
       console.error('Login error:', error);
-      alert(error.message || 'Invalid credentials. Please try again.');
+      // Provide more specific error messages
+      let errorMessage = 'Invalid credentials. Please try again.';
+      if (error.message) {
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (error.message.includes('pending approval')) {
+          errorMessage = 'Your account is pending admin approval. Please wait for approval or contact support.';
+        } else if (error.message.includes('blocked')) {
+          errorMessage = 'Your account has been blocked. Please contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      alert(errorMessage);
       return null;
     }
   };
@@ -208,12 +221,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const handlePurchase = async (course: Course, paymentDetails: import('@/components/PaymentForm').PaymentDetails) => {
     if (!currentUser) {
       setShowAuthModal(true);
-      return;
+      throw new Error('Please log in to purchase courses');
     }
 
     if (currentUser.role === 'admin') {
       alert('Admin cannot purchase courses');
-      return;
+      throw new Error('Admin cannot purchase courses');
+    }
+
+    // Check if user is approved (for non-admin users)
+    if (currentUser.role === 'user' && currentUser.isApproved === false) {
+      alert('Your account is pending approval. Please wait for admin approval before making purchases.');
+      throw new Error('Account pending approval');
     }
 
     try {

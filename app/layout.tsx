@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppProvider } from "@/lib/context/AppContext";
 import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
+import { Footer } from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <AppProvider>
           <Header />
           {children}
+          <Footer />
           <AuthModal />
         </AppProvider>
       </body>

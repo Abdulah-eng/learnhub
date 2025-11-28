@@ -27,8 +27,17 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
   };
 
   const handlePaymentSubmit = async (paymentDetails: PaymentDetails) => {
+    try {
     await onPurchase(paymentDetails);
     setShowPaymentDialog(false);
+      // Close the course detail dialog after successful purchase
+      setTimeout(() => {
+        onClose();
+      }, 100);
+    } catch (error) {
+      console.error('Purchase error:', error);
+      // Keep dialog open on error so user can retry
+    }
   };
 
   return (
@@ -110,6 +119,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
             </ul>
           </div>
 
+          {!isPurchased && (
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <h3 className="mb-3">Price Breakdown</h3>
             <div className="flex justify-between text-sm">
@@ -127,7 +137,9 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
               </div>
             </div>
           </div>
+          )}
 
+          {!isPurchased && (
           <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Price</p>
@@ -138,11 +150,30 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
-              <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto">
-                Purchase Now
+                <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto" disabled={isLoading}>
+                  {isLoading ? 'Processing...' : 'Purchase Now'}
               </Button>
             </div>
           </div>
+          )}
+          
+          {isPurchased && (
+            <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-green-600 mb-1">You own this course</p>
+                <p className="text-gray-900 text-lg">Access your course materials in your dashboard</p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 ml-auto w-full sm:w-auto">
+                <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                  Close
+                </Button>
+                <Button variant="default" onClick={onClose} className="w-full sm:w-auto">
+                  Go to Dashboard
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
 

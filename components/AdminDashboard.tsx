@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Transaction, User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TransactionReceipt } from './TransactionReceipt';
-import { DollarSign, ShoppingCart, Users, AlertCircle, CheckCircle2, XCircle, Ban, Unlock } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, AlertCircle, CheckCircle2, XCircle, Ban, Unlock, BookOpen } from 'lucide-react';
+import { AdminCoursesManagement } from './AdminCoursesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -20,6 +21,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ transactions, users, loading = false, onUsersUpdate }: AdminDashboardProps) {
   const [updatingUsers, setUpdatingUsers] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<string>('all');
   const totalRevenue = transactions.reduce((sum, tx) => sum + tx.totalAmount, 0);
   const totalTax = transactions.reduce((sum, tx) => sum + tx.serviceTax, 0);
   const disputedCount = transactions.filter(tx => tx.status === 'disputed').length;
@@ -92,10 +94,23 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <Card>
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'all' 
+              ? 'border-blue-500 shadow-md bg-blue-50/50' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('all');
+            // Smooth scroll to tabs section
+            setTimeout(() => {
+              document.getElementById('admin-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-600" />
+            <DollarSign className={`h-4 w-4 ${activeTab === 'all' ? 'text-blue-600' : 'text-gray-600'}`} />
           </CardHeader>
           <CardContent>
             <div className="text-gray-900">${totalRevenue.toFixed(2)}</div>
@@ -103,10 +118,23 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'all' 
+              ? 'border-blue-500 shadow-md bg-blue-50/50' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('all');
+            // Smooth scroll to tabs section
+            setTimeout(() => {
+              document.getElementById('admin-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Total Transactions</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-gray-600" />
+            <ShoppingCart className={`h-4 w-4 ${activeTab === 'all' ? 'text-blue-600' : 'text-gray-600'}`} />
           </CardHeader>
           <CardContent>
             <div className="text-gray-900">{transactions.length}</div>
@@ -114,10 +142,23 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'users' 
+              ? 'border-blue-500 shadow-md bg-blue-50/50' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('users');
+            // Smooth scroll to tabs section
+            setTimeout(() => {
+              document.getElementById('admin-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-gray-600" />
+            <Users className={`h-4 w-4 ${activeTab === 'users' ? 'text-blue-600' : 'text-gray-600'}`} />
           </CardHeader>
           <CardContent>
             <div className="text-gray-900">{users.length}</div>
@@ -125,10 +166,47 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'courses' 
+              ? 'border-blue-500 shadow-md bg-blue-50/50' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('courses');
+            // Smooth scroll to tabs section
+            setTimeout(() => {
+              document.getElementById('admin-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm">Courses</CardTitle>
+            <BookOpen className={`h-4 w-4 ${activeTab === 'courses' ? 'text-blue-600' : 'text-gray-600'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-gray-900">Manage</div>
+            <p className="text-xs text-gray-600 mt-1">Edit courses & images</p>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'disputed' 
+              ? 'border-blue-500 shadow-md bg-blue-50/50' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('disputed');
+            // Smooth scroll to tabs section
+            setTimeout(() => {
+              document.getElementById('admin-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Disputed</CardTitle>
-            <AlertCircle className="h-4 w-4 text-gray-600" />
+            <AlertCircle className={`h-4 w-4 ${activeTab === 'disputed' ? 'text-blue-600' : 'text-gray-600'}`} />
           </CardHeader>
           <CardContent>
             <div className="text-gray-900">{disputedCount}</div>
@@ -137,10 +215,14 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-6">
+      <Tabs id="admin-tabs" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="flex w-full flex-wrap justify-start gap-2 overflow-x-auto">
           <TabsTrigger value="all">All Transactions</TabsTrigger>
           <TabsTrigger value="users">Users Overview</TabsTrigger>
+          <TabsTrigger value="courses">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Courses Management
+          </TabsTrigger>
           <TabsTrigger value="disputed">
             Disputed ({disputedCount})
           </TabsTrigger>
@@ -164,6 +246,10 @@ export function AdminDashboard({ transactions, users, loading = false, onUsersUp
               />
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="courses" className="space-y-4">
+          <AdminCoursesManagement />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">

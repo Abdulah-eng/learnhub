@@ -44,10 +44,8 @@ export async function signIn(email: string, password: string) {
     throw new Error('Your account has been blocked. Please contact support.');
   }
 
-  // Check if user is approved (only for non-admin users)
-  if (userProfile.role === 'user' && !userProfile.is_approved) {
-    throw new Error('Your account is pending approval. Please wait for admin approval.');
-  }
+  // Note: We allow login even if user is not approved
+  // The app will handle showing appropriate UI and restrictions
 
   return {
     user: data.user,

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Course } from '@/lib/types';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
@@ -14,13 +14,26 @@ interface CourseCardProps {
 }
 
 export const CourseCard = memo(function CourseCard({ course, onSelect, isPurchased }: CourseCardProps) {
+  const fallbackImage = useMemo(() => {
+    const seedSource = course.id || course.title || 'learnhub-course';
+    const seed = seedSource.replace(/[^a-zA-Z0-9]/g, '') || 'learnhubcourse';
+    return `https://picsum.photos/seed/${seed}/900/600`;
+  }, [course.id, course.title]);
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
       <div className="relative" onClick={onSelect}>
         <img
-          src={course.image}
+          src={course.image || fallbackImage}
           alt={course.title}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          onError={(event) => {
+            const target = event.currentTarget;
+            if (target.src !== fallbackImage) {
+              target.src = fallbackImage;
+            }
+          }}
         />
         {isPurchased && (
           <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full flex items-center gap-1">
