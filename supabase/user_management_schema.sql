@@ -4,7 +4,7 @@
 -- Run this file in Supabase SQL Editor
 -- This adds is_approved and is_blocked fields to profiles table
 -- ============================================
-
+-- add new fields to profiles table
 -- Add is_approved field (defaults to false for new signups, requires admin approval)
 ALTER TABLE profiles 
 ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT false;
