@@ -76,11 +76,27 @@ export function AdminCoursesManagement() {
         throw new Error(data.error || 'Failed to update course');
       }
 
-      // Reload courses to get updated data
-      await loadCourses();
+      // Update local state immediately instead of reloading all courses
+      setCourses(prevCourses => 
+        prevCourses.map(course => 
+          course.id === editingCourse.id
+            ? {
+                ...course,
+                ...editForm,
+                // Ensure image is properly set
+                image: editForm.image || course.image,
+              }
+            : course
+        )
+      );
+
       setEditingCourse(null);
       setEditForm({});
-      alert('Course updated successfully!');
+      
+      // Show success message without blocking
+      setTimeout(() => {
+        alert('Course updated successfully!');
+      }, 100);
     } catch (err: any) {
       console.error('Error updating course:', err);
       setError(err.message || 'Failed to update course. Please try again.');

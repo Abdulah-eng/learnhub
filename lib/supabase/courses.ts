@@ -90,7 +90,14 @@ export async function getCoursesPaginated(limit: number = 6, offset: number = 0)
  */
 export async function getAllCourses(): Promise<Course[]> {
   try {
-    const { data, error } = await supabase
+    let timeoutId: NodeJS.Timeout | undefined;
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Request timeout. Please try again.')), 15000);
+    });
+
+    const fetchPromise = supabase
       .from('courses')
       .select(`
         id,
@@ -110,6 +117,15 @@ export async function getAllCourses(): Promise<Course[]> {
       `)
       .order('created_at', { ascending: false })
       .limit(100); // Limit to prevent huge queries
+
+    const result = await Promise.race([
+      fetchPromise,
+      timeoutPromise
+    ]) as { data: any; error: any };
+
+    if (timeoutId) clearTimeout(timeoutId);
+
+    const { data, error } = result;
 
     if (error) {
       console.error('Error fetching courses:', error);
