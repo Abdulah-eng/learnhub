@@ -58,12 +58,40 @@ export async function getUserPurchasedCourses(userId: string): Promise<string[]>
 
 /**
  * Add a purchased course for a user
+ * Note: This allows multiple transactions for the same course
+ * The UNIQUE constraint on (user_id, course_id) prevents duplicate entries,
+ * but we handle this gracefully to allow multiple purchases/transactions
  */
 export async function addPurchasedCourse(
   userId: string,
   courseId: string,
   transactionId: string
 ): Promise<boolean> {
+  // First check if this course is already purchased
+  const { data: existing } = await supabase
+    .from('user_purchased_courses')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .single();
+
+  if (existing) {
+    // Course already purchased, but we still want to record the transaction
+    // Update the transaction_id to the latest one
+    const { error: updateError } = await supabase
+      .from('user_purchased_courses')
+      .update({ transaction_id: transactionId })
+      .eq('user_id', userId)
+      .eq('course_id', courseId);
+
+    if (updateError) {
+      console.error('Error updating purchased course transaction:', updateError);
+      // Don't fail - transaction was created successfully
+    }
+    return true; // Consider it successful since course is already purchased
+  }
+
+  // Course not purchased yet, insert new record
   const { error } = await supabase
     .from('user_purchased_courses')
     .insert({
@@ -73,6 +101,21 @@ export async function addPurchasedCourse(
     });
 
   if (error) {
+    // If it's a duplicate key error, that's okay - course was already purchased
+    if (error.code === '23505') {
+      console.log('Course already purchased, updating transaction ID');
+      // Try to update the transaction_id
+      const { error: updateError } = await supabase
+        .from('user_purchased_courses')
+        .update({ transaction_id: transactionId })
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (updateError) {
+        console.error('Error updating purchased course transaction:', updateError);
+      }
+      return true; // Consider it successful
+    }
     console.error('Error adding purchased course:', error);
     return false;
   }

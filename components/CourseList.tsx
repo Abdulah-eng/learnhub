@@ -45,16 +45,20 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
       const cachedCategories = sessionStorage.getItem('categories_cache');
       const cacheTimestamp = sessionStorage.getItem('courses_cache_timestamp');
       
-      // Use cache if it exists and is less than 5 minutes old
+      // Use cache if it exists and is less than 10 minutes old
       if (cachedCourses && cachedCategories && cacheTimestamp) {
         const age = Date.now() - parseInt(cacheTimestamp, 10);
-        if (age < 5 * 60 * 1000) { // 5 minutes
+        if (age < 10 * 60 * 1000) { // 10 minutes
           const coursesData = JSON.parse(cachedCourses);
           const categoriesData = JSON.parse(cachedCategories);
           setCourses(coursesData);
           setCategories(categoriesData);
           setLoading(false);
-          return; // Don't fetch if we have fresh cache
+          // Still fetch in background to update cache
+          fetchInitialData().catch(() => {
+            // Silently fail background fetch
+          });
+          return; // Don't wait for fresh data if we have cache
         }
       }
     } catch (e) {
@@ -74,9 +78,9 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
       setError(null);
       setCurrentOffset(0);
       
-      // Add timeout to prevent hanging (10 seconds)
+      // Add timeout to prevent hanging (30 seconds)
       const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timeout. Please check your connection and try again.')), 10000);
+        timeoutId = setTimeout(() => reject(new Error('Request timeout. Please check your connection and try again.')), 30000);
       });
       
       const fetchPromise = Promise.all([
@@ -99,13 +103,15 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
       setCategories(categoriesList);
       setLoading(false);
       
-      // Cache categories in sessionStorage
+      // Cache courses and categories in sessionStorage
       if (typeof window !== 'undefined') {
         try {
+          sessionStorage.setItem('courses_cache', JSON.stringify(coursesData));
           sessionStorage.setItem('categories_cache', JSON.stringify(categoriesList));
+          sessionStorage.setItem('courses_cache_timestamp', Date.now().toString());
           sessionStorage.setItem('categories_cache_timestamp', Date.now().toString());
         } catch (e) {
-          console.warn('Failed to cache categories', e);
+          console.warn('Failed to cache data', e);
         }
       }
     } catch (err: any) {
@@ -138,7 +144,7 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
       setError(null);
       
       const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timeout')), 10000);
+        timeoutId = setTimeout(() => reject(new Error('Request timeout')), 30000);
       });
       
       let result;

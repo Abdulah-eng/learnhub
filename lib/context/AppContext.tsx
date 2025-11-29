@@ -66,25 +66,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Check for existing session on mount
   useEffect(() => {
+    let isMounted = true;
+    
     async function checkUser() {
       try {
         const result = await getCurrentUser();
-        if (result?.profile) {
-          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
-          setCurrentUser({
-            id: result.profile.id,
-            name: result.profile.name,
-            email: result.profile.email,
-            role: result.profile.role,
-            purchasedCourses,
-            isApproved: result.profile.is_approved ?? true,
-            isBlocked: result.profile.is_blocked ?? false,
-          });
+        if (result?.profile && isMounted) {
+          // Load purchased courses with timeout
+          try {
+            const purchasedCourses = await Promise.race([
+              getUserPurchasedCourses(result.profile.id),
+              new Promise<string[]>((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 10000)
+              )
+            ]);
+            
+            if (isMounted) {
+              setCurrentUser({
+                id: result.profile.id,
+                name: result.profile.name,
+                email: result.profile.email,
+                role: result.profile.role,
+                purchasedCourses,
+                isApproved: result.profile.is_approved ?? true,
+                isBlocked: result.profile.is_blocked ?? false,
+              });
+            }
+          } catch (error) {
+            console.error('Error loading purchased courses:', error);
+            // Continue with empty purchased courses
+            if (isMounted) {
+              setCurrentUser({
+                id: result.profile.id,
+                name: result.profile.name,
+                email: result.profile.email,
+                role: result.profile.role,
+                purchasedCourses: [],
+                isApproved: result.profile.is_approved ?? true,
+                isBlocked: result.profile.is_blocked ?? false,
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error checking user:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -94,7 +123,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = onAuthStateChange(async (result) => {
       if (result?.profile) {
         try {
-          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+          // Load purchased courses with timeout
+          const purchasedCourses = await Promise.race([
+            getUserPurchasedCourses(result.profile.id),
+            new Promise<string[]>((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 10000)
+            )
+          ]);
+          
           setCurrentUser({
             id: result.profile.id,
             name: result.profile.name,
@@ -106,6 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           });
         } catch (error) {
           console.error('Error loading purchased courses:', error);
+          // Continue with empty purchased courses
           setCurrentUser({
             id: result.profile.id,
             name: result.profile.name,
@@ -125,6 +162,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -133,7 +171,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const result = await signIn(email, password);
       if (result.profile) {
-        const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+        // Load purchased courses with timeout
+        let purchasedCourses: string[] = [];
+        try {
+          purchasedCourses = await Promise.race([
+            getUserPurchasedCourses(result.profile.id),
+            new Promise<string[]>((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 10000)
+            )
+          ]);
+        } catch (error) {
+          console.error('Error loading purchased courses:', error);
+          // Continue with empty array
+        }
+        
         const user = {
           id: result.profile.id,
           name: result.profile.name,
@@ -254,7 +305,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Add purchased course to database (allow multiple purchases)
+      // Add purchased course to database (allows multiple transactions for same course)
+      // This will handle duplicates gracefully
       const success = await addPurchasedCourse(
         currentUser.id,
         course.id,
@@ -262,23 +314,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
 
       if (!success) {
-        console.error('Failed to add purchased course');
+        console.error('Failed to add purchased course, but transaction was created');
+        // Don't fail the purchase - transaction was successful
+      }
+      
+      // Always refresh purchased courses to ensure UI is up to date
+      try {
+        const updatedPurchasedCourses = await getUserPurchasedCourses(currentUser.id);
+        setCurrentUser({
+          ...currentUser,
+          purchasedCourses: updatedPurchasedCourses
+        });
+      } catch (error) {
+        console.error('Error refreshing purchased courses:', error);
+        // Continue - we'll update on next page load
       }
 
-      // Update local state - only add to purchasedCourses if not already there
+      // Update local state
       const transactionWithName: Transaction = {
         ...newTransaction,
         userName: currentUser.name,
       };
       setTransactions([transactionWithName, ...transactions]);
-      
-      // Only update purchasedCourses if this is the first purchase of this course
-      if (!currentUser.purchasedCourses.includes(course.id)) {
-        setCurrentUser({
-          ...currentUser,
-          purchasedCourses: [...currentUser.purchasedCourses, course.id]
-        });
-      }
       
       setSelectedCourse(null);
       
