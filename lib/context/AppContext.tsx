@@ -72,14 +72,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const result = await getCurrentUser();
         if (result?.profile && isMounted) {
-          // Load purchased courses with timeout
+          // Load purchased courses (optimized - no timeout)
           try {
-            const purchasedCourses = await Promise.race([
-              getUserPurchasedCourses(result.profile.id),
-              new Promise<string[]>((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 10000)
-              )
-            ]);
+            const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
             
             if (isMounted) {
               setCurrentUser({
@@ -121,44 +116,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes
     const { data: { subscription } } = onAuthStateChange(async (result) => {
-      if (result?.profile) {
-        try {
-          // Load purchased courses with timeout
-          const purchasedCourses = await Promise.race([
-            getUserPurchasedCourses(result.profile.id),
-            new Promise<string[]>((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 10000)
-            )
-          ]);
-          
-          setCurrentUser({
-            id: result.profile.id,
-            name: result.profile.name,
-            email: result.profile.email,
-            role: result.profile.role,
-            purchasedCourses,
-            isApproved: result.profile.is_approved ?? true,
-            isBlocked: result.profile.is_blocked ?? false,
-          });
-        } catch (error) {
-          console.error('Error loading purchased courses:', error);
-          // Continue with empty purchased courses
-          setCurrentUser({
-            id: result.profile.id,
-            name: result.profile.name,
-            email: result.profile.email,
-            role: result.profile.role,
-            purchasedCourses: [],
-            isApproved: result.profile.is_approved ?? true,
-            isBlocked: result.profile.is_blocked ?? false,
-          });
+      try {
+        if (result?.profile) {
+          try {
+            // Load purchased courses (optimized - no timeout)
+            const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+            
+            setCurrentUser({
+              id: result.profile.id,
+              name: result.profile.name,
+              email: result.profile.email,
+              role: result.profile.role,
+              purchasedCourses,
+              isApproved: result.profile.is_approved ?? true,
+              isBlocked: result.profile.is_blocked ?? false,
+            });
+          } catch (error) {
+            console.error('Error loading purchased courses:', error);
+            // Continue with empty purchased courses
+            setCurrentUser({
+              id: result.profile.id,
+              name: result.profile.name,
+              email: result.profile.email,
+              role: result.profile.role,
+              purchasedCourses: [],
+              isApproved: result.profile.is_approved ?? true,
+              isBlocked: result.profile.is_blocked ?? false,
+            });
+          }
+        } else {
+          setCurrentUser(null);
+          setSelectedCourse(null);
+          setTransactions([]);
         }
-      } else {
-        setCurrentUser(null);
-        setSelectedCourse(null);
-        setTransactions([]);
+      } catch (error: any) {
+        // Handle token refresh errors silently
+        if (error?.message?.includes('refresh_token') || error?.message?.includes('Invalid Refresh Token')) {
+          console.warn('Token refresh error handled, clearing session');
+          setCurrentUser(null);
+          setSelectedCourse(null);
+          setTransactions([]);
+        } else {
+          console.error('Error in auth state change:', error);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -171,15 +174,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const result = await signIn(email, password);
       if (result.profile) {
-        // Load purchased courses with timeout
+        // Load purchased courses (optimized - no timeout)
         let purchasedCourses: string[] = [];
         try {
-          purchasedCourses = await Promise.race([
-            getUserPurchasedCourses(result.profile.id),
-            new Promise<string[]>((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 10000)
-            )
-          ]);
+          purchasedCourses = await getUserPurchasedCourses(result.profile.id);
         } catch (error) {
           console.error('Error loading purchased courses:', error);
           // Continue with empty array

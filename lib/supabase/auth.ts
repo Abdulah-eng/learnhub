@@ -211,7 +211,30 @@ export async function getCurrentUser(): Promise<{ user: any; profile: UserProfil
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (error || !user) {
+    // Handle invalid refresh token errors
+    if (error) {
+      // If it's a token refresh error, clear the session
+      if (error.message?.includes('refresh_token') || error.message?.includes('Invalid Refresh Token')) {
+        console.warn('Invalid refresh token, clearing session');
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          console.error('Error signing out:', signOutError);
+        }
+        // Clear localStorage if available
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('sb-auth-token');
+            localStorage.removeItem(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`);
+          } catch (e) {
+            // Ignore localStorage errors
+          }
+        }
+      }
+      return null;
+    }
+
+    if (!user) {
       return null;
     }
 
@@ -253,6 +276,24 @@ export async function getCurrentUser(): Promise<{ user: any; profile: UserProfil
  */
 export function onAuthStateChange(callback: (result: { user: any; profile: UserProfile | null } | null) => void) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
+    // Handle token refresh errors
+    if (event === 'TOKEN_REFRESHED' && !session) {
+      // Token refresh failed, clear session
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('Error signing out after token refresh failure:', error);
+      }
+      callback(null);
+      return;
+    }
+
+    // Handle signed out events
+    if (event === 'SIGNED_OUT' || !session?.user) {
+      callback(null);
+      return;
+    }
+
     if (session?.user) {
       // Wait a bit for profile to be created if it's a new signup
       let profile = null;
@@ -260,23 +301,28 @@ export function onAuthStateChange(callback: (result: { user: any; profile: UserP
       const maxAttempts = 5;
 
       while (attempts < maxAttempts) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileData) {
-          profile = profileData;
-          break;
-        }
+          if (profileData) {
+            profile = profileData;
+            break;
+          }
 
-        // If it's a "not found" error, wait and retry
-        if (profileError && profileError.code === 'PGRST116') {
-          await new Promise(resolve => setTimeout(resolve, 200));
-          attempts++;
-        } else {
-          // Other errors, break and return null profile
+          // If it's a "not found" error, wait and retry
+          if (profileError && profileError.code === 'PGRST116') {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            attempts++;
+          } else {
+            // Other errors, break and return null profile
+            break;
+          }
+        } catch (error) {
+          console.error('Error fetching profile in auth state change:', error);
           break;
         }
       }

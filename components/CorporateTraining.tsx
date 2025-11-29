@@ -152,7 +152,7 @@ export function CorporateTraining() {
                     <Clock className="h-5 w-5 text-gray-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    ${pkg.price.toLocaleString()}
+                    ${pkg.price}
                   </h3>
                   <p className="text-gray-600 mb-4">{pkg.description}</p>
                   <div className="pt-4 border-t border-gray-200 space-y-2 mb-4">
@@ -225,7 +225,7 @@ export function CorporateTraining() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Package Price:</span>
-                  <span className="text-gray-900">${selectedPackage.price.toLocaleString()}</span>
+                  <span className="text-gray-900">${selectedPackage.price}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Service Tax (8%):</span>

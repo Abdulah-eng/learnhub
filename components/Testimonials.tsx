@@ -4,8 +4,15 @@ import { Star, Globe } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 
 export function Testimonials() {
-  const usClients = ['Verizon', 'Citi', 'Nestle'];
-  const countries = ['UK', 'India', 'China', 'Dubai'];
+  const usClients = [
+    { name: 'Verizon', rating: 5 },
+    { name: 'Citi', rating: 5 },
+    { name: 'Nestle', rating: 5 },
+    { name: 'Deloitte', rating: 4.5 },
+    { name: 'PWC', rating: 4.5 },
+    { name: 'Lennar Homes', rating: 4.5 }
+  ];
+  const countries = ['US', 'UK', 'India', 'China', 'Dubai'];
 
   return (
     <section className="py-16 bg-white">
@@ -30,10 +37,14 @@ export function Testimonials() {
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <Star 
+                          key={i} 
+                          className={`h-4 w-4 ${i < Math.floor(client.rating) ? 'fill-yellow-400 text-yellow-400' : i < client.rating ? 'fill-yellow-400 text-yellow-400 opacity-50' : 'text-gray-300'}`} 
+                        />
                       ))}
                     </div>
-                    <span className="font-semibold text-gray-900">{client}</span>
+                    <span className="font-semibold text-gray-900">{client.name}</span>
+                    <span className="text-sm text-gray-600 ml-auto">{client.rating}</span>
                   </div>
                 ))}
               </div>

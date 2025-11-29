@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, HelpCircle, FileText, Shield, Users, Info } from 'lucide-react';
+import { BookOpen, Mail, HelpCircle, FileText, Shield, Users, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -50,20 +50,6 @@ export function Footer() {
               <p className="text-sm mb-4">
                 Empowering learners worldwide with expert-led courses and cutting-edge technology education.
               </p>
-              <div className="flex gap-4">
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  <Facebook className="h-5 w-5" />
-                </a>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  <Instagram className="h-5 w-5" />
-                </a>
-              </div>
             </div>
 
             {/* Quick Links */}
@@ -121,24 +107,7 @@ export function Footer() {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
                   <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>support@learnhub.com</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Phone className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>+1 (555) 123-4567</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>123 Education St, Learning City, LC 12345</span>
-                </li>
-                <li>
-                  <Button 
-                    onClick={() => setShowContactModal(true)}
-                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-                    size="sm"
-                  >
-                    Send Message
-                  </Button>
+                  <span>info@infraninja.org</span>
                 </li>
               </ul>
             </div>
@@ -265,15 +234,7 @@ export function Footer() {
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  <span>Email: support@learnhub.com</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  <span>Phone: +1 (555) 123-4567 (Mon-Fri, 9 AM - 6 PM EST)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  <span>Live Chat: Available on weekdays</span>
+                  <span>Email: info@infraninja.org</span>
                 </li>
               </ul>
             </div>

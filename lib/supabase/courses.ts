@@ -86,18 +86,11 @@ export async function getCoursesPaginated(limit: number = 6, offset: number = 0)
 }
 
 /**
- * Fetch all courses from the database (for backward compatibility)
+ * Fetch all courses from the database (optimized for speed)
  */
 export async function getAllCourses(): Promise<Course[]> {
   try {
-    let timeoutId: NodeJS.Timeout | undefined;
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('Request timeout. Please try again.')), 15000);
-    });
-
-    const fetchPromise = supabase
+    const { data, error } = await supabase
       .from('courses')
       .select(`
         id,
@@ -115,17 +108,7 @@ export async function getAllCourses(): Promise<Course[]> {
           name
         )
       `)
-      .order('created_at', { ascending: false })
-      .limit(100); // Limit to prevent huge queries
-
-    const result = await Promise.race([
-      fetchPromise,
-      timeoutPromise
-    ]) as { data: any; error: any };
-
-    if (timeoutId) clearTimeout(timeoutId);
-
-    const { data, error } = result;
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching courses:', error);
@@ -133,7 +116,6 @@ export async function getAllCourses(): Promise<Course[]> {
     }
 
     if (!data || data.length === 0) {
-      console.warn('No courses found in database');
       return [];
     }
 
@@ -318,8 +300,7 @@ export async function getCoursesByCategory(categoryName: string): Promise<Course
         )
       `)
       .eq('category_id', categoryData.id)
-      .order('created_at', { ascending: false })
-      .limit(100);
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching courses by category:', error);
