@@ -20,38 +20,45 @@ function AuthCallbackContent() {
         return;
       }
 
+      // With PKCE flow and detectSessionInUrl: true, Supabase automatically handles the code exchange
+      // We just need to wait for it to complete and then check for the session
       if (code) {
         try {
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          // Listen for auth state changes to know when session is established
+          let sessionEstablished = false;
           
-          if (exchangeError) {
-            console.error('Error exchanging code for session:', exchangeError);
-            alert('Failed to complete sign in. Please try again.');
-            router.push('/');
-            return;
-          }
-
-          if (data?.session?.user) {
-            // Wait a moment for profile to be created
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Check if profile exists
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', data.session.user.id)
-              .single();
-
-            if (profile) {
-              // Success - redirect to dashboard
-              router.push('/dashboard');
-            } else {
-              // Profile not created yet, wait a bit more
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              router.push('/dashboard');
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+              sessionEstablished = true;
+              await handleSuccessfulAuth(session.user.id);
+              subscription.unsubscribe();
             }
-          } else {
-            router.push('/');
+          });
+
+          // Also wait a bit and check session directly (in case event already fired)
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          if (!sessionEstablished) {
+            // Check if we have a session now
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+              console.error('Error getting session after callback:', sessionError);
+              subscription.unsubscribe();
+              alert('Failed to complete sign in. Please try signing in again.');
+              router.push('/');
+              return;
+            }
+
+            if (session?.user) {
+              subscription.unsubscribe();
+              await handleSuccessfulAuth(session.user.id);
+            } else {
+              subscription.unsubscribe();
+              console.warn('No session found after OAuth callback');
+              alert('Authentication failed. Please try signing in again.');
+              router.push('/');
+            }
           }
         } catch (error) {
           console.error('Error in OAuth callback:', error);
@@ -59,7 +66,29 @@ function AuthCallbackContent() {
           router.push('/');
         }
       } else {
+        // No code parameter, redirect to home
         router.push('/');
+      }
+    };
+
+    const handleSuccessfulAuth = async (userId: string) => {
+      // Wait a moment for profile to be created
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if profile exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profile) {
+        // Success - redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // Profile not created yet, wait a bit more
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        router.push('/dashboard');
       }
     };
 

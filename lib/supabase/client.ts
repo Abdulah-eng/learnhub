@@ -32,10 +32,15 @@ if (typeof window !== 'undefined') {
       console.warn('Token refresh failed, clearing invalid session');
       try {
         // Clear all Supabase auth tokens from localStorage
+        // BUT preserve PKCE code verifier if it exists (for OAuth flow)
         const keys = Object.keys(localStorage);
         keys.forEach(key => {
+          // Don't clear PKCE code verifier - it's needed for OAuth callback
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth-token')) {
-            localStorage.removeItem(key);
+            // Preserve PKCE code verifier
+            if (!key.includes('code-verifier') && !key.includes('pkce')) {
+              localStorage.removeItem(key);
+            }
           }
         });
       } catch (e) {
@@ -47,6 +52,18 @@ if (typeof window !== 'undefined') {
   // Handle unhandled promise rejections from Supabase
   window.addEventListener('unhandledrejection', (event) => {
     const error = event.reason;
+    
+    // Suppress PKCE code exchange errors - these can happen during normal page loads
+    // when Supabase tries to automatically detect sessions but the code verifier is missing
+    if (error?.message?.includes('code verifier') || 
+        error?.message?.includes('auth code and code verifier') ||
+        error?.message?.includes('both auth code and code verifier should be non-empty')) {
+      // This is a PKCE flow error - suppress it to avoid console noise
+      // It's expected when there's no active OAuth flow
+      event.preventDefault();
+      return;
+    }
+    
     if (error?.message?.includes('refresh_token') || 
         error?.message?.includes('Invalid Refresh Token') ||
         error?.message?.includes('Refresh Token Not Found')) {
@@ -57,8 +74,12 @@ if (typeof window !== 'undefined') {
       try {
         const keys = Object.keys(localStorage);
         keys.forEach(key => {
+          // Don't clear PKCE code verifier
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth-token')) {
-            localStorage.removeItem(key);
+            // Preserve PKCE code verifier
+            if (!key.includes('code-verifier') && !key.includes('pkce')) {
+              localStorage.removeItem(key);
+            }
           }
         });
         // Sign out to clear session

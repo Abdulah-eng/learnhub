@@ -119,7 +119,6 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
             </ul>
           </div>
 
-          {!isPurchased && (
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <h3 className="mb-3">Price Breakdown</h3>
             <div className="flex justify-between text-sm">
@@ -136,10 +135,15 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
                 <span className="text-gray-900">${totalAmount.toFixed(2)}</span>
               </div>
             </div>
+            {isPurchased && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-sm text-green-600">
+                  ✓ You already own this course. You can purchase it again to create a new transaction.
+                </p>
+              </div>
+            )}
           </div>
-          )}
 
-          {!isPurchased && (
           <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Price</p>
@@ -150,30 +154,11 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
-                <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto" disabled={isLoading}>
-                  {isLoading ? 'Processing...' : 'Purchase Now'}
+              <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto" disabled={isLoading}>
+                {isLoading ? 'Processing...' : isPurchased ? 'Purchase Again' : 'Purchase Now'}
               </Button>
             </div>
           </div>
-          )}
-          
-          {isPurchased && (
-            <div className="border-t border-gray-200/50 pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-green-600 mb-1">You own this course</p>
-                <p className="text-gray-900 text-lg">Access your course materials in your dashboard</p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3 ml-auto w-full sm:w-auto">
-                <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                  Close
-                </Button>
-                <Button variant="default" onClick={onClose} className="w-full sm:w-auto">
-                  Go to Dashboard
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </DialogContent>
 
