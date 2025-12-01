@@ -76,11 +76,13 @@ export function CorporateTraining() {
 
       const result = await response.json();
 
-      // Send confirmation email with Zoom link
+      // Send confirmation email with Zoom link (fire-and-forget so UI isn't blocked)
       try {
-        const zoomLink = process.env.NEXT_PUBLIC_ZOOM_LINK || `https://zoom.us/j/corporate-${selectedPackage.duration.replace(/\s/g, '-')}`;
-        
-        await fetch('/api/send-email', {
+        const zoomLink =
+          process.env.NEXT_PUBLIC_ZOOM_LINK ||
+          `https://zoom.us/j/corporate-${selectedPackage.duration.replace(/\s/g, '-')}`;
+
+        void fetch('/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -97,9 +99,11 @@ export function CorporateTraining() {
               zoomLink: zoomLink,
             },
           }),
+        }).catch((error) => {
+          console.error('Error sending confirmation email:', error);
         });
       } catch (error) {
-        console.error('Error sending confirmation email:', error);
+        console.error('Error preparing confirmation email:', error);
       }
 
       alert(`Successfully purchased Corporate Training (${selectedPackage.duration})! A confirmation email with your Zoom link has been sent to ${paymentDetails.recipientEmail}.`);

@@ -74,18 +74,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (result?.profile && isMounted) {
           // Load purchased courses (optimized - no timeout)
           try {
-            const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
             
             if (isMounted) {
-              setCurrentUser({
-                id: result.profile.id,
-                name: result.profile.name,
-                email: result.profile.email,
-                role: result.profile.role,
-                purchasedCourses,
-                isApproved: result.profile.is_approved ?? true,
-                isBlocked: result.profile.is_blocked ?? false,
-              });
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses,
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
+          });
             }
           } catch (error) {
             console.error('Error loading purchased courses:', error);
@@ -107,7 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Error checking user:', error);
       } finally {
         if (isMounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     }
@@ -117,38 +117,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Listen for auth state changes
     const { data: { subscription } } = onAuthStateChange(async (result) => {
       try {
-        if (result?.profile) {
-          try {
+      if (result?.profile) {
+        try {
             // Load purchased courses (optimized - no timeout)
-            const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
+          const purchasedCourses = await getUserPurchasedCourses(result.profile.id);
             
-            setCurrentUser({
-              id: result.profile.id,
-              name: result.profile.name,
-              email: result.profile.email,
-              role: result.profile.role,
-              purchasedCourses,
-              isApproved: result.profile.is_approved ?? true,
-              isBlocked: result.profile.is_blocked ?? false,
-            });
-          } catch (error) {
-            console.error('Error loading purchased courses:', error);
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses,
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
+          });
+        } catch (error) {
+          console.error('Error loading purchased courses:', error);
             // Continue with empty purchased courses
-            setCurrentUser({
-              id: result.profile.id,
-              name: result.profile.name,
-              email: result.profile.email,
-              role: result.profile.role,
-              purchasedCourses: [],
-              isApproved: result.profile.is_approved ?? true,
-              isBlocked: result.profile.is_blocked ?? false,
-            });
-          }
-        } else {
-          setCurrentUser(null);
-          setSelectedCourse(null);
-          setTransactions([]);
+          setCurrentUser({
+            id: result.profile.id,
+            name: result.profile.name,
+            email: result.profile.email,
+            role: result.profile.role,
+            purchasedCourses: [],
+            isApproved: result.profile.is_approved ?? true,
+            isBlocked: result.profile.is_blocked ?? false,
+          });
         }
+      } else {
+        setCurrentUser(null);
+        setSelectedCourse(null);
+        setTransactions([]);
+      }
       } catch (error: any) {
         // Handle token refresh errors silently
         if (error?.message?.includes('refresh_token') || error?.message?.includes('Invalid Refresh Token')) {
@@ -160,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           console.error('Error in auth state change:', error);
         }
       } finally {
-        setLoading(false);
+      setLoading(false);
       }
     });
 
@@ -315,7 +315,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Failed to add purchased course, but transaction was created');
         // Don't fail the purchase - transaction was successful
       }
-      
+
       // Always refresh purchased courses to ensure UI is up to date
       try {
         const updatedPurchasedCourses = await getUserPurchasedCourses(currentUser.id);
@@ -337,21 +337,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       setSelectedCourse(null);
       
-      // Send purchase confirmation email with zoom link to the recipient email
+      // Send purchase confirmation email with zoom link to the recipient email.
+      // This is intentionally fire-and-forget so the UI isn't blocked
+      // if the email service is slow or misconfigured.
       try {
-        // Default zoom link - can be configured per course or globally
-        const zoomLink = process.env.NEXT_PUBLIC_ZOOM_LINK || `https://zoom.us/j/${course.id.replace(/-/g, '')}`;
+        const zoomLink =
+          process.env.NEXT_PUBLIC_ZOOM_LINK ||
+          `https://zoom.us/j/${course.id.replace(/-/g, '')}`;
         
-        await fetch('/api/send-email', {
+        void fetch('/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             type: 'course_purchase',
-            to: paymentDetails.recipientEmail, // Use recipient email from payment form
+            to: paymentDetails.recipientEmail,
             data: {
-              userName: paymentDetails.cardName, // Use cardholder name
+              userName: paymentDetails.cardName,
               courseTitle: course.title,
               instructor: course.instructor,
               totalAmount: totalAmount,
@@ -359,10 +362,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
               zoomLink: zoomLink,
             },
           }),
+        }).catch((error) => {
+          console.error('Error sending purchase confirmation email:', error);
         });
       } catch (error) {
-        console.error('Error sending purchase confirmation email:', error);
-        // Don't fail purchase if email fails
+        console.error('Error preparing purchase confirmation email:', error);
+        // Don't fail purchase if email setup has issues
       }
       
       // Show success message

@@ -3,40 +3,64 @@ import { User } from '../types';
 
 /**
  * Get all users (admin only)
+ *
+ * This implementation is optimized to avoid N+1 queries by:
+ * - Fetching all user profiles in a single query
+ * - Fetching all purchased courses for those users in a single query
+ * - Grouping courses by user ID on the client
  */
 export async function getAllUsers(): Promise<User[]> {
-  const { data, error } = await supabase
+  const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('*')
     .eq('role', 'user')
     .order('name', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching users:', error);
+  if (profilesError) {
+    console.error('Error fetching users:', profilesError);
     return [];
   }
 
-  // Get purchased courses for each user
-  const usersWithCourses = await Promise.all(
-    data.map(async (profile) => {
-      const { data: purchasedCourses } = await supabase
-        .from('user_purchased_courses')
-        .select('course_id')
-        .eq('user_id', profile.id);
+  if (!profiles || profiles.length === 0) {
+    return [];
+  }
 
-      return {
-        id: profile.id,
-        name: profile.name || '',
-        email: profile.email || '',
-        role: profile.role as 'admin' | 'user',
-        purchasedCourses: purchasedCourses?.map((pc) => pc.course_id) || [],
-        isApproved: profile.is_approved ?? true, // Default to true for backward compatibility
-        isBlocked: profile.is_blocked ?? false, // Default to false for backward compatibility
-      };
-    })
-  );
+  // Collect all user IDs so we can fetch purchases in a single query
+  const userIds = profiles.map((profile) => profile.id);
 
-  return usersWithCourses;
+  const { data: purchasedRows, error: purchasesError } = await supabase
+    .from('user_purchased_courses')
+    .select('user_id, course_id')
+    .in('user_id', userIds);
+
+  if (purchasesError) {
+    console.error('Error fetching purchased courses for users:', purchasesError);
+  }
+
+  // Group purchased course IDs by user ID
+  const purchasesByUser = new Map<string, string[]>();
+
+  if (purchasedRows) {
+    for (const row of purchasedRows as { user_id: string; course_id: string }[]) {
+      if (!purchasesByUser.has(row.user_id)) {
+        purchasesByUser.set(row.user_id, []);
+      }
+      purchasesByUser.get(row.user_id)!.push(row.course_id);
+    }
+  }
+
+  // Build User objects
+  const users: User[] = profiles.map((profile: any) => ({
+    id: profile.id,
+    name: profile.name || '',
+    email: profile.email || '',
+    role: profile.role as 'admin' | 'user',
+    purchasedCourses: purchasesByUser.get(profile.id) || [],
+    isApproved: profile.is_approved ?? true, // Default to true for backward compatibility
+    isBlocked: profile.is_blocked ?? false, // Default to false for backward compatibility
+  }));
+
+  return users;
 }
 
 /**

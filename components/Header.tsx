@@ -38,7 +38,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => router.push('/')}>
             <BookOpen className="h-8 w-8 text-blue-600" />
-            <span className="text-xl text-gray-900 font-semibold">LearnHub</span>
+            <span className="text-xl text-gray-900 font-semibold">InfraNinja</span>
           </div>
           
           <div className="hidden md:flex items-center gap-4">

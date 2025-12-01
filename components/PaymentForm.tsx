@@ -20,7 +20,7 @@ interface PaymentFormProps {
   courseTitle: string;
   totalAmount: number;
   defaultEmail?: string;
-  onSubmit: (paymentDetails: PaymentDetails) => void;
+  onSubmit: (paymentDetails: PaymentDetails) => void | Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -104,7 +104,7 @@ export function PaymentForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const newErrors: Partial<Record<keyof PaymentDetails, string>> = {};
@@ -152,7 +152,11 @@ export function PaymentForm({
       return;
     }
 
-    onSubmit(formData);
+    // Call onSubmit and handle both sync and async cases
+    const result = onSubmit(formData);
+    if (result instanceof Promise) {
+      await result;
+    }
   };
 
   return (

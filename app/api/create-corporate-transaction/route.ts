@@ -26,9 +26,38 @@ export async function POST(request: NextRequest) {
       '45 Days': '22222222-2222-2222-2222-222222222222',
       '3 Months': '33333333-3333-3333-3333-333333333333',
     };
-    
     const corporateCourseId = corporateCourseIds[packageDuration] || corporateCourseIds['15 Days'];
-    
+
+    // Ensure we have a "Corporate Training" category and get its ID
+    const CORPORATE_CATEGORY_NAME = 'Corporate Training';
+    let corporateCategoryId: string | null = null;
+
+    const { data: existingCategory, error: categoryError } = await supabaseAdmin
+      .from('categories')
+      .select('id')
+      .eq('name', CORPORATE_CATEGORY_NAME)
+      .single();
+
+    if (categoryError && categoryError.code !== 'PGRST116') {
+      console.error('Error fetching corporate training category:', categoryError);
+    }
+
+    if (existingCategory) {
+      corporateCategoryId = existingCategory.id;
+    } else {
+      const { data: newCategory, error: insertCategoryError } = await supabaseAdmin
+        .from('categories')
+        .insert({ name: CORPORATE_CATEGORY_NAME })
+        .select('id')
+        .single();
+
+      if (insertCategoryError) {
+        console.error('Error creating corporate training category:', insertCategoryError);
+      } else {
+        corporateCategoryId = newCategory.id;
+      }
+    }
+
     // Check if this corporate training course exists, if not create it
     let { data: existingCourse } = await supabaseAdmin
       .from('courses')
@@ -46,12 +75,14 @@ export async function POST(request: NextRequest) {
           description: `Corporate training package for ${packageDuration}. One-on-one training by specialized instructors. Available on-site in any city worldwide.`,
           instructor: 'Corporate Training Team',
           price: packagePrice,
-          image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800',
+          image_url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800',
           duration: packageDuration,
           level: 'Corporate',
           students: 0,
           rating: 5.0,
-          category: 'Corporate Training',
+          // Use category_id to match current schema; if we couldn't
+          // resolve/create a category, leave this null so insert still works.
+          category_id: corporateCategoryId,
         });
 
       if (courseError && courseError.code !== '23505') { // Ignore duplicate key errors

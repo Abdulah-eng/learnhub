@@ -95,7 +95,7 @@ export function AdminCoursesManagement() {
       
       // Show success message without blocking
       setTimeout(() => {
-        alert('Course updated successfully!');
+      alert('Course updated successfully!');
       }, 100);
     } catch (err: any) {
       console.error('Error updating course:', err);

@@ -19,6 +19,7 @@ interface UserDashboardProps {
 export function UserDashboard({ user, onCourseSelect, transactions, onDispute }: UserDashboardProps) {
   const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'courses' | 'transactions'>('courses');
 
   useEffect(() => {
     async function fetchPurchasedCourses() {
@@ -32,8 +33,19 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
         const courses = await Promise.all(
           user.purchasedCourses.map(courseId => getCourseById(courseId))
         );
-        
-        setPurchasedCourses(courses.filter((course): course is Course => course !== null));
+
+        // Deduplicate courses by ID in case the user has purchased
+        // the same course multiple times (multiple transactions).
+        const uniqueById = new Map<string, Course>();
+        courses
+          .filter((course): course is Course => course !== null)
+          .forEach((course) => {
+            if (!uniqueById.has(course.id)) {
+              uniqueById.set(course.id, course);
+            }
+          });
+
+        setPurchasedCourses(Array.from(uniqueById.values()));
       } catch (error) {
         console.error('Error fetching purchased courses:', error);
         setPurchasedCourses([]);
@@ -55,7 +67,19 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <Card>
+        <Card
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'courses'
+              ? 'border-blue-500 shadow-md bg-blue-50/50'
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('courses');
+            setTimeout(() => {
+              document.getElementById('user-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Enrolled Courses</CardTitle>
             <BookOpen className="h-4 w-4 text-gray-600" />
@@ -66,7 +90,19 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'courses'
+              ? 'border-blue-500 shadow-md bg-blue-50/50'
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('courses');
+            setTimeout(() => {
+              document.getElementById('user-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Total Hours</CardTitle>
             <Clock className="h-4 w-4 text-gray-600" />
@@ -82,7 +118,19 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'transactions'
+              ? 'border-blue-500 shadow-md bg-blue-50/50'
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('transactions');
+            setTimeout(() => {
+              document.getElementById('user-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Transactions</CardTitle>
             <Receipt className="h-4 w-4 text-gray-600" />
@@ -93,7 +141,19 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className={`cursor-pointer hover:shadow-lg transition-all ${
+            activeTab === 'transactions'
+              ? 'border-blue-500 shadow-md bg-blue-50/50'
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => {
+            setActiveTab('transactions');
+            setTimeout(() => {
+              document.getElementById('user-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm">Total Spent</CardTitle>
             <Award className="h-4 w-4 text-gray-600" />
@@ -105,7 +165,12 @@ export function UserDashboard({ user, onCourseSelect, transactions, onDispute }:
         </Card>
       </div>
 
-      <Tabs defaultValue="courses" className="space-y-6">
+      <Tabs
+        id="user-tabs"
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'courses' | 'transactions')}
+        className="space-y-6"
+      >
         <TabsList className="flex w-full flex-wrap justify-start gap-2 overflow-x-auto">
           <TabsTrigger value="courses">My Courses</TabsTrigger>
           <TabsTrigger value="transactions">Transaction History</TabsTrigger>

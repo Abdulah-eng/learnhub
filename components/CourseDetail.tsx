@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Course } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Star, Users, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Star, Users, Clock, CheckCircle2 } from 'lucide-react';
 import { PaymentForm, PaymentDetails } from './PaymentForm';
 
 interface CourseDetailProps {
@@ -14,10 +14,9 @@ interface CourseDetailProps {
   onPurchase: (paymentDetails: PaymentDetails) => Promise<void>;
   isPurchased: boolean;
   userEmail?: string;
-  isLoading?: boolean;
 }
 
-export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEmail = '', isLoading = false }: CourseDetailProps) {
+export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEmail = '' }: CourseDetailProps) {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const serviceTax = course.price * 0.08;
   const totalAmount = course.price + serviceTax;
@@ -28,8 +27,8 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
 
   const handlePaymentSubmit = async (paymentDetails: PaymentDetails) => {
     try {
-    await onPurchase(paymentDetails);
-    setShowPaymentDialog(false);
+      await onPurchase(paymentDetails);
+      setShowPaymentDialog(false);
       // Close the course detail dialog after successful purchase
       setTimeout(() => {
         onClose();
@@ -37,6 +36,8 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
     } catch (error) {
       console.error('Purchase error:', error);
       // Keep dialog open on error so user can retry
+    } finally {
+      // no-op; we don't hold any loading state here so the UI stays responsive
     }
   };
 
@@ -154,8 +155,12 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                 Close
               </Button>
-              <Button onClick={handlePurchaseClick} size="lg" className="w-full sm:w-auto" disabled={isLoading}>
-                {isLoading ? 'Processing...' : isPurchased ? 'Purchase Again' : 'Purchase Now'}
+              <Button
+                onClick={handlePurchaseClick}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                {isPurchased ? 'Purchase Again' : 'Enroll Now'}
               </Button>
             </div>
           </div>
@@ -168,7 +173,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
           <DialogHeader>
             <DialogTitle>Payment Details</DialogTitle>
             <DialogDescription>
-              Enter your payment information to complete the purchase
+              Enter your payment information to complete the enrollment
             </DialogDescription>
           </DialogHeader>
 
@@ -178,7 +183,7 @@ export function CourseDetail({ course, onClose, onPurchase, isPurchased, userEma
             defaultEmail={userEmail}
             onSubmit={handlePaymentSubmit}
             onCancel={() => setShowPaymentDialog(false)}
-            isLoading={isLoading}
+            isLoading={false}
           />
         </DialogContent>
       </Dialog>

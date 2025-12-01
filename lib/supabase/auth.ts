@@ -302,23 +302,23 @@ export function onAuthStateChange(callback: (result: { user: any; profile: UserP
 
       while (attempts < maxAttempts) {
         try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
 
-          if (profileData) {
-            profile = profileData;
-            break;
-          }
+        if (profileData) {
+          profile = profileData;
+          break;
+        }
 
-          // If it's a "not found" error, wait and retry
-          if (profileError && profileError.code === 'PGRST116') {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
-          } else {
-            // Other errors, break and return null profile
+        // If it's a "not found" error, wait and retry
+        if (profileError && profileError.code === 'PGRST116') {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          attempts++;
+        } else {
+          // Other errors, break and return null profile
             break;
           }
         } catch (error) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BookOpen, Mail, HelpCircle, FileText, Shield, Users, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
@@ -15,6 +16,7 @@ import {
 } from './ui/accordion';
 
 export function Footer() {
+  const router = useRouter();
   const [showContactModal, setShowContactModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showInstructorsModal, setShowInstructorsModal] = useState(false);
@@ -43,10 +45,14 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="flex items-center gap-2 mb-4 hover:text-blue-400 transition-colors"
+              >
                 <BookOpen className="h-6 w-6 text-blue-400" />
-                <span className="text-xl font-semibold text-white">LearnHub</span>
-              </div>
+                <span className="text-xl font-semibold text-white">InfraNinja</span>
+              </button>
               <p className="text-sm mb-4">
                 Empowering learners worldwide with expert-led courses and cutting-edge technology education.
               </p>
@@ -114,7 +120,7 @@ export function Footer() {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} LearnHub. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} InfraNinja. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -130,7 +136,7 @@ export function Footer() {
           </DialogHeader>
           <div className="space-y-4 text-gray-700">
             <p>
-              LearnHub is a leading online learning platform dedicated to providing high-quality, 
+              InfraNinja is a leading online learning platform dedicated to providing high-quality, 
               expert-led courses in cutting-edge technologies. Our mission is to empower learners 
               worldwide by making professional education accessible, engaging, and effective.
             </p>
@@ -253,7 +259,7 @@ export function Footer() {
               <h3 className="font-semibold mb-2">Response Time</h3>
               <p className="text-sm">
                 We aim to respond to all support inquiries within 24 hours during business days. 
-                For urgent matters, please call our support line.
+                Please contact us via email for any support needs.
               </p>
             </div>
           </div>
@@ -273,13 +279,13 @@ export function Footer() {
             <div>
               <h3 className="font-semibold mb-2">1. Acceptance of Terms</h3>
               <p>
-                By accessing and using LearnHub, you accept and agree to be bound by these Terms of Service.
+                By accessing and using InfraNinja, you accept and agree to be bound by these Terms of Service.
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-2">2. Use of Service</h3>
               <p>
-                You agree to use LearnHub only for lawful purposes and in accordance with these Terms. 
+                You agree to use InfraNinja only for lawful purposes and in accordance with these Terms. 
                 You may not share your account credentials or course materials with others.
               </p>
             </div>

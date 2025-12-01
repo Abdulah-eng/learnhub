@@ -40,21 +40,21 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
     if (!isClient) return;
 
     async function loadAllData() {
-      try {
+    try {
         // Try to load from cache first
-        const cachedCourses = sessionStorage.getItem('courses_cache');
-        const cachedCategories = sessionStorage.getItem('categories_cache');
-        const cacheTimestamp = sessionStorage.getItem('courses_cache_timestamp');
-        
+      const cachedCourses = sessionStorage.getItem('courses_cache');
+      const cachedCategories = sessionStorage.getItem('categories_cache');
+      const cacheTimestamp = sessionStorage.getItem('courses_cache_timestamp');
+      
         // Use cache if it exists and is less than 15 minutes old
-        if (cachedCourses && cachedCategories && cacheTimestamp) {
-          const age = Date.now() - parseInt(cacheTimestamp, 10);
+      if (cachedCourses && cachedCategories && cacheTimestamp) {
+        const age = Date.now() - parseInt(cacheTimestamp, 10);
           if (age < 15 * 60 * 1000) { // 15 minutes
-            const coursesData = JSON.parse(cachedCourses);
-            const categoriesData = JSON.parse(cachedCategories);
+          const coursesData = JSON.parse(cachedCourses);
+          const categoriesData = JSON.parse(cachedCategories);
             setAllCourses(coursesData);
-            setCategories(categoriesData);
-            setLoading(false);
+          setCategories(categoriesData);
+          setLoading(false);
             
             // Fetch fresh data in background to update cache
             fetchAllData().catch(() => {
@@ -147,7 +147,12 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h2 className="mb-6">Explore Our Courses</h2>
+          <h2
+            className="mb-6 cursor-pointer hover:text-blue-600 transition-colors"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            Explore Our Courses
+          </h2>
         </div>
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
@@ -176,7 +181,12 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h2 className="mb-6">Explore Our Courses</h2>
+          <h2
+            className="mb-6 cursor-pointer hover:text-blue-600 transition-colors"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            Explore Our Courses
+          </h2>
         </div>
         <div className="text-center py-12">
           <p className="text-red-600">{error}</p>
@@ -188,7 +198,7 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
-        <h2 className="mb-6">Explore Our Courses</h2>
+        <h2 className="mb-6 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Explore Our Courses</h2>
         
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList className="w-full justify-start overflow-x-auto">
@@ -206,16 +216,16 @@ export function CourseList({ onCourseSelect, purchasedCourses }: CourseListProps
           <p className="text-gray-600">No courses found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedCourses.map(course => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onSelect={() => handleCourseSelect(course)}
-              isPurchased={purchasedCoursesSet.has(course.id)}
-            />
-          ))}
-        </div>
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  onSelect={() => handleCourseSelect(course)}
+                  isPurchased={purchasedCoursesSet.has(course.id)}
+                />
+              ))}
+          </div>
       )}
     </div>
   );

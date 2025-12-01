@@ -82,7 +82,7 @@ export function AuthModal() {
     }}>
       <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader className="text-left">
-          <DialogTitle className="text-gray-900 text-xl font-semibold">Welcome to LearnHub</DialogTitle>
+          <DialogTitle className="text-gray-900 text-xl font-semibold">Welcome to InfraNinja</DialogTitle>
           <DialogDescription className="text-gray-600 text-sm">
             Sign in to your account or create a new one
           </DialogDescription>

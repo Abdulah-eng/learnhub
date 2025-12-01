@@ -38,7 +38,7 @@ export const CourseCard = memo(function CourseCard({ course, onSelect, isPurchas
         {isPurchased && (
           <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full flex items-center gap-1">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="text-sm">Owned</span>
+            <span className="text-sm">Enrolled</span>
           </div>
         )}
       </div>
