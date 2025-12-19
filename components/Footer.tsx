@@ -51,7 +51,7 @@ export function Footer() {
                 className="flex items-center gap-2 mb-4 hover:text-blue-400 transition-colors"
               >
                 <BookOpen className="h-6 w-6 text-blue-400" />
-                <span className="text-xl font-semibold text-white">InfraNinja</span>
+                <span className="text-xl font-semibold text-white">Techxpand</span>
               </button>
               <p className="text-sm mb-4">
                 Empowering learners worldwide with expert-led courses and cutting-edge technology education.
@@ -120,7 +120,7 @@ export function Footer() {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} InfraNinja. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Techxpand. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -136,7 +136,7 @@ export function Footer() {
           </DialogHeader>
           <div className="space-y-4 text-gray-700">
             <p>
-              InfraNinja is a leading online learning platform dedicated to providing high-quality, 
+              Techxpand is a leading online learning platform dedicated to providing high-quality, 
               expert-led courses in cutting-edge technologies. Our mission is to empower learners 
               worldwide by making professional education accessible, engaging, and effective.
             </p>
@@ -279,13 +279,13 @@ export function Footer() {
             <div>
               <h3 className="font-semibold mb-2">1. Acceptance of Terms</h3>
               <p>
-                By accessing and using InfraNinja, you accept and agree to be bound by these Terms of Service.
+                By accessing and using Techxpand, you accept and agree to be bound by these Terms of Service.
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-2">2. Use of Service</h3>
               <p>
-                You agree to use InfraNinja only for lawful purposes and in accordance with these Terms. 
+                You agree to use Techxpand only for lawful purposes and in accordance with these Terms. 
                 You may not share your account credentials or course materials with others.
               </p>
             </div>
